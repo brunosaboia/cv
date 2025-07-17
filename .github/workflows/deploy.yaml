@@ -1,0 +1,31 @@
+name: Deploy CV to saboia-it.github.io
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout CV repo
+      uses: actions/checkout@v4
+
+    - name: Install LaTeX
+      run: sudo apt-get update && sudo apt-get install -y texlive-latex-base
+
+    - name: Build PDF
+      run: make
+
+    - name: Clone target repo
+      run: |
+        git config --global user.name 'GitHub Action'
+        git config --global user.email 'action@github.com'
+        git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/saboia-it/saboia-it.github.io.git target-repo
+        cp cv.pdf target-repo/assets/pdf/cv/cv.pdf
+        cd target-repo
+        git add assets/pdf/cv/cv.pdf
+        git commit -m 'Update CV from brunosaboia/cv@${{ github.sha }}' || echo 'No changes'
+        git push origin master
