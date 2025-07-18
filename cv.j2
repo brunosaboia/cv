@@ -1,0 +1,138 @@
+\documentclass[margin]{res} % Use the res.cls style
+
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=magenta,
+	urlcolor=cyan,
+	pdftitle={{ personal.name | escape }} - CV,
+	pdfpagemode=FullScreen,
+}
+
+\usepackage{helvet}
+
+\setlength{\textwidth}{5.2in} %default 5.1in % Text width of the document
+
+\begin{document}
+	\moveleft.5\hoffset\centerline{\huge\bf Bruno Saboia de Albuquerque}
+	\moveleft\hoffset\vbox{\hrule width\resumewidth height 1.5pt}
+	\moveleft.5\hoffset\centerline{Aeschengraben 17, 4051 Basel, CH}
+	\moveleft.5\hoffset\centerline{e-mail: bruno@saboia.it -- Tel: +41 78 245 7688}
+	\moveleft.5\hoffset\centerline{\sl{\href{ {{ personal.github }} }{GitHub} -- \href{ {{ personal.linkedin }} }{LinkedIn}}}
+
+	\begin{resume}
+
+{% set fmt_year = "%Y" %}
+{% set fmt_month_year = "%B %Y" %}
+
+{% for section in headers %}
+		\section{ {{ section | upper }} }
+
+		{% if section == 'experience' %}
+			{% for item in experience %}
+				{\bf {{ item.company }}}, {\sl {{ item.location }}} \hfill {\sl {{ item.duration.start | as_date(fmt_month_year) }} -- {{ item.duration.end | as_date(fmt_month_year) }} } \\
+				{\sl — \href{ {{ item.url }} }{ {{ item.url }} }} \\
+				{\sl {{ item.title }} } \\
+				\\
+				{{ item.description }} \\
+				\\
+				{\sl Technologies: {{ item.technologies | join(', ') }} }
+				\\
+			{% endfor %}
+		{% elif section == 'education' %}
+			{% for edu in education %}
+				{\bf {{ edu.institution }}}, {\sl {{ edu.location }}} \hfill {\sl {{ edu.duration.start | as_date(fmt_year) }} -- {{ edu.duration.end | as_date(fmt_year) }} } \\
+				{\sl — \href{ {{ edu.url }} }{ {{ edu.url }} }} \\
+				{\sl {{ edu.degree }} } \\
+				{{ edu.field }} (\href{ {{ edu.transcript }} }{Transcript of records})
+			{% endfor %}
+			\hfill
+		{% elif section == 'awards' %}
+			\begin{itemize}
+				{% for award in awards %}
+					\item {\sl {{ award.title }}}, {{ award.place }} (\href{ {{ award.link }} }{ {{ award.attained_at.date | as_date(fmt_year) }}})
+				{% endfor %}
+			\end{itemize}
+		{% elif section == 'certifications' %}
+		\begin{itemize}
+			{% for cert in certifications %}
+				\item {\sl {{ cert.title }} } (\href{ {{ cert.link }} }{ {{ cert.attained_at.date | as_date(fmt_year) }} })
+			{% endfor %}
+		\end{itemize}
+		{% elif section == 'publications' %}
+		\begin{itemize}
+			{% for pub in publications %}
+				\item {\sl {{ pub.title }} } ({{ pub.published_at.date | as_date(fmt_year) }}), DOI: \href{https://doi.org/{{ pub.doi }}}{ {{ pub.doi }}}
+			{% endfor %}
+		\end{itemize}
+		{% elif section == 'reviews' %}
+		\textbf{Bachelor theses:}
+		\begin{itemize}
+			{% for thesis in reviews.bachelor_thesis %}
+				\item {\sl {{ thesis.title }}}, {{ thesis.author }} (\href{ {{ thesis.link }} }{ {{ thesis.published_at.date | as_date(fmt_year) }}})
+			{% endfor %}
+		\end{itemize}
+		\textbf{Scientific papers:}
+		\begin{itemize}
+			{% for paper in reviews.papers %}
+				\item {\sl {{ paper.title }}}, {{ paper.author }} (\href{ {{ paper.link }} }{ {{ paper.published_at.date | as_date(fmt_year) }}})
+			{% endfor %}
+		\end{itemize}
+		{% elif section == 'skills' %}
+		\textbf{Programming-related skills:}
+		\begin{itemize}
+			{% for s in skills.programming %}
+				\item {{ s.name }} ({{ s.years }} yrs)
+			{% endfor %}
+		\end{itemize}
+		\textbf{Technologies:}
+		\begin{itemize}
+			{% for t in skills.technologies %}
+				\item {{ t.name }} ({{ t.years }} yrs)
+			{% endfor %}
+		\end{itemize}
+		\textbf{Languages:}
+		\begin{itemize}
+			{% for l in skills.languages %}
+				\item {{ l.name }} — {{ l.level }}
+			{% endfor %}
+		\end{itemize}
+		\textbf{Other skills:}
+		\begin{itemize}
+			{% for o in skills.other %}
+				\item {{ o }}
+			{% endfor %}
+		\end{itemize}
+		{% elif section == 'hobbies' %}
+		\textbf{Sports:}
+		\begin{itemize}
+			{% for s in hobbies.sports %}
+				\item {{ s }}
+			{% endfor %}
+		\end{itemize}
+		\textbf{Music:}
+		\begin{itemize}
+			{% for m in hobbies.music %}
+				\item {{ m }}
+			{% endfor %}
+		\end{itemize}
+		\textbf{Research:}
+		\begin{itemize}
+			{% for r in hobbies.research %}
+				\item {{ r }}
+			{% endfor %}
+		\end{itemize}
+		\textbf{Other:}
+		\begin{itemize}
+			{% for o in hobbies.other %}
+				\item {{ o }}
+			{% endfor %}
+		\end{itemize}
+		{% endif %}
+{% endfor %}
+	\end{resume}
+	\vfill
+	\moveleft\hoffset\vbox{\hrule width\resumewidth height 0.4pt}
+	\moveleft.5\hoffset\centerline{\footnotesize{Last updated at {{ now.strftime('%Y-%m-%d') }} -- the most recent copy can be found at \href{https://bruno.saboia.it/cv}{https://bruno.saboia.it/cv}}}
+\end{document}

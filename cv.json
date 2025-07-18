@@ -1,0 +1,313 @@
+{
+	"headers": [
+		"experience",
+		"education",
+		"publications",
+		"reviews",
+		"awards",
+		"certifications",
+		"skills",
+		"hobbies"
+	],
+	"personal": {
+		"name": "Bruno Saboia de Albuquerque",
+		"address": "Aeschengraben 17, 4051 Basel, CH",
+		"email": "bruno@saboia.it",
+		"phone": "+41 78 245 7688",
+		"github": "https://github.com/brunosaboia",
+		"linkedin": "https://linkedin.com/in/brunosaboia"
+	},
+	"experience": [
+		{
+			"company": "Bank for International Settlements",
+			"location": "Basel, CH",
+			"url": "https://bis.org",
+			"title": "Data Analytics Engineer",
+			"duration": {
+				"start": "2024-05-01",
+				"end": "2025-05-01"
+			},
+			"description": "Work on AI-related projects, mainly BIS GPT, an LLM-based chatbot for secure and private communication.",
+			"technologies": [
+				"TypeScript",
+				"React",
+				"Python",
+				"LLM",
+				"RAG",
+				"Azure",
+				"OpenShift",
+				"Docker",
+				"ArgoCD",
+				"GitHub"
+			]
+		},
+		{
+			"company": "Bank for International Settlements",
+			"location": "Basel, CH",
+			"url": "https://bis.org",
+			"title": "Business Analyst/Developer",
+			"duration": {
+				"start": "2022-05-01",
+				"end": "2024-05-01"
+			},
+			"description": "Help Risk Management understand financial risks using IT best practices.",
+			"technologies": [
+				"C#",
+				"Git",
+				"Azure DevOps",
+				"Python",
+				"PowerShell",
+				"Bash",
+				"OpenShift",
+				"SQL",
+				"Octopus",
+				"ArgoCD"
+			]
+		}
+	],
+	"education": [
+		{
+			"institution": "Universidade Federal do Ceará",
+			"location": "Fortaleza, Brazil",
+			"url": "https://ufc.br",
+			"degree": "Bachelor of Science",
+			"field": "Economics",
+			"duration": {
+				"start": "2013-01-01",
+				"end": "2016-01-01"
+			},
+			"transcript": "https://saboia.it/assets/pdf/transcripts/2016-04-29-transcript-ufc.pdf"
+		},
+		{
+			"institution": "Universität Liechtenstein",
+			"location": "Vaduz, Liechtenstein",
+			"url": "https://uni.li",
+			"degree": "Exchange Student",
+			"field": "Business Administration and IT",
+			"duration": {
+				"start": "2015-01-01",
+				"end": "2016-01-01"
+			},
+			"transcript": "https://saboia.it/assets/pdf/transcripts/2016-02-17-transcript-liech.pdf"
+		}
+	],
+	"awards": [
+		{
+			"title": "SAP DemoJam Barcelona",
+			"place": "1st",
+			"attained_at": {
+				"date": "2015-11-12"
+			},
+			"link": "https://www.uni.li/en/topics/information-systems/news/university-students-successful-in-world2019s-leading-sap-conference"
+		}
+	],
+	"certifications": [
+		{
+			"title": "Machine Learning",
+			"attained_at": {
+				"date": "2013-01-01"
+			},
+			"link": "https://www.coursera.org/api/legacyCertificates.v1/spark/statementOfAccomplishment/152~314678/pdf"
+		},
+		{
+			"title": "Computational Investing, Part I",
+			"attained_at": {
+				"date": "2013-01-01"
+			},
+			"link": "https://www.coursera.org/api/legacyCertificates.v1/spark/statementOfAccomplishment/364~314678/pdf"
+		}
+	],
+	"publications": [
+		{
+			"title": "Over the Cliff: How Brazil’s 2004–2016 Business Cycle Became Its Worst Recession in a Century",
+			"published_at": {
+				"date": "2020-01-01"
+			},
+			"doi": "10.35297/qjae.010027"
+		},
+		{
+			"title": "Understanding Bitcoins: Facts and Questions",
+			"published_at": {
+				"date": "2015-01-01"
+			},
+			"doi": "10.5935/0034-7140.20150001"
+		}
+	],
+	"reviews": {
+		"bachelor_thesis": [
+			{
+				"title": "Os efeitos do grau de Liberdade Econômica sobre o Índice de Desenvolvimento Humano (IDH) e o IDH ajustado à desigualdade",
+				"author": "Renato Leitão",
+				"published_at": {
+					"date": "2022-01-01"
+				},
+				"link": "https://saboia.it/assets/pdf/reviews/2022-02-15-renato-leitao.pdf"
+			},
+			{
+				"title": "Bitcoins - uma moeda global e descentralizada",
+				"author": "Raíssa Guerra",
+				"published_at": {
+					"date": "2022-01-01"
+				},
+				"link": "https://saboia.it/assets/pdf/reviews/2022-02-15-raissa-guerra.pdf"
+			},
+			{
+				"title": "Abertura comercial e produtividade: evidências empíricas de correlação nas últimas duas décadas",
+				"author": "Saulo Queiroz",
+				"published_at": {
+					"date": "2021-01-01"
+				},
+				"link": "https://saboia.it/assets/pdf/reviews/2021-08-26-saulo-queiroz.pdf"
+			},
+			{
+				"title": "Mercado de criptoativos: conjuntura e desafios",
+				"author": "Gabriel Radaelly",
+				"published_at": {
+					"date": "2021-01-01"
+				},
+				"link": "https://saboia.it/assets/pdf/reviews/2021-08-25-gabriel-radaelly.pdf"
+			},
+			{
+				"title": "A moeda digital do século XXI: um estudo de caso sobre o Bitcoin",
+				"author": "Hemerson Braga",
+				"published_at": {
+					"date": "2021-01-01"
+				},
+				"link": "https://saboia.it/assets/pdf/reviews/2022-07-07-hemerson-braga.pdf"
+			}
+		],
+		"papers": [
+			{
+				"title": "The Political Thought of José Osvaldo de Meira Penna",
+				"author": "Gabriel F. Benzecry",
+				"published_at": {
+					"date": "2023-01-01"
+				},
+				"link": "https://jls.mises.org/article/70305-the-political-thought-of-jose-osvaldo-de-meira-penna"
+			}
+		]
+	},
+	"skills": {
+		"programming": [
+			{
+				"name": "C#",
+				"years": 20
+			},
+			{
+				"name": "Python",
+				"years": 20
+			},
+			{
+				"name": "SQL",
+				"years": 20
+			},
+			{
+				"name": "Bash/Shell",
+				"years": 15
+			},
+			{
+				"name": "JavaScript",
+				"years": 5
+			},
+			{
+				"name": "TypeScript",
+				"years": 3
+			},
+			{
+				"name": "Ruby",
+				"years": 3
+			},
+			{
+				"name": "React",
+				"years": 1
+			}
+		],
+		"technologies": [
+			{
+				"name": "DevOps",
+				"years": 10
+			},
+			{
+				"name": "CI/CD",
+				"years": 10
+			},
+			{
+				"name": "AI",
+				"years": 6
+			},
+			{
+				"name": "ML",
+				"years": 5
+			},
+			{
+				"name": "LLM",
+				"years": 2
+			},
+			{
+				"name": "RAG",
+				"years": 1
+			}
+		],
+		"languages": [
+			{
+				"name": "Portuguese",
+				"level": "Native"
+			},
+			{
+				"name": "English",
+				"level": "Full professional proficiency"
+			},
+			{
+				"name": "Spanish",
+				"level": "Limited professional proficiency"
+			},
+			{
+				"name": "German",
+				"level": "Basic"
+			},
+			{
+				"name": "Italian",
+				"level": "Basic"
+			},
+			{
+				"name": "Danish",
+				"level": "Basic"
+			},
+			{
+				"name": "Hebrew",
+				"level": "Basic"
+			}
+		],
+		"other": [
+			"OS (Linux, Windows, macOS)",
+			"Office Suite (Word, PowerPoint, Excel (with VBA))",
+			"Networking",
+			"OCP/K8S",
+			"LaTeX",
+			"R/Matlab/Octave",
+			"AutoCAD",
+			"Photoshop/Image editing tools"
+		]
+	},
+	"hobbies": {
+		"sports": [
+			"Go-karting",
+			"Martial arts"
+		],
+		"music": [
+			"Singing",
+			"Guitar",
+			"Piano"
+		],
+		"research": [
+			"Genealogy",
+			"History",
+			"Mathematics",
+			"Physics"
+		],
+		"other": [
+			"Motorbike",
+			"Photography"
+		]
+	}
+}

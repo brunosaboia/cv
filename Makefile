@@ -1,29 +1,28 @@
-
 TARGET = cv
 SOURCE = $(TARGET).tex
 GENERATED_PREFIX = $(TARGET)_gen
 GENERATED = $(GENERATED_PREFIX).tex
 OUTPUT = $(TARGET).pdf
-HASH_FILE = .$(TARGET).tex.md5
+HASH_FILE = .cv.json.md5
 
 LATEX = pdflatex -synctex=1 -interaction=nonstopmode
-DATE = $(shell date +'%Y-%m-%d')
 
 .PHONY: all build check-latex clean cleanall
 
 all: check-latex build
 
 build:
+	@echo "Running generator..."
+	python generate_cv.py
 	@if [ ! -f $(HASH_FILE) ] || ! md5sum -c $(HASH_FILE) --status; then \
-		echo "Detected change in $(SOURCE). Injecting date and compiling..."; \
-		sed 's/\$$LAST_UPDATED\$$/$(DATE)/' $(SOURCE) > $(GENERATED); \
-		$(LATEX) $(GENERATED); \
-		$(LATEX) $(GENERATED); \
-		mv $(TARGET)_gen.pdf $(OUTPUT); \
-		md5sum $(SOURCE) > $(HASH_FILE); \
-		rm $(GENERATED_PREFIX).*; \
+		python generate_cv.py \
+		echo "Detected change in cv.json. Compiling..."; \
+		$(LATEX) $(SOURCE); \
+		$(LATEX) $(SOURCE); \
+		md5sum cv.json > $(HASH_FILE); \
+		rm -f $(TARGET).aux $(TARGET).log $(TARGET).synctex.gz; \
 	else \
-		echo "No changes in $(SOURCE). Skipping compilation."; \
+		echo "No changes in cv.json. Skipping compilation."; \
 	fi
 
 check-latex:
@@ -32,7 +31,7 @@ check-latex:
 clean:
 	rm -f $(TARGET).aux $(TARGET).log $(TARGET).synctex.gz $(TARGET).out $(TARGET).toc \
 	      $(TARGET).bbl $(TARGET).blg $(TARGET).fdb_latexmk $(TARGET).fls \
-	      $(GENERATED)
+	      $(GENERATED) $(SOURCE)
 
 cleanall: clean
 	rm -f $(OUTPUT) $(HASH_FILE)

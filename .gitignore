@@ -9,8 +9,12 @@
 *.fls
 
 # output
+*.tex
 *.pdf
 !bib/*.pdf  # Exception: track PDF files inside the bib/ directory
 
 # Mac OS files
 .DS_Store
+
+# pyenv files
+.venv/
