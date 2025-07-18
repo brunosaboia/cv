@@ -52,7 +52,8 @@
 			},
 			"description": "Help Risk Management understand financial risks using IT best practices.",
 			"technologies": [
-				"C#",
+				".NET",
+				"C\\#",
 				"Git",
 				"Azure DevOps",
 				"Python",
