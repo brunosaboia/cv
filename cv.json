@@ -75,7 +75,7 @@
 			"field": "Economics",
 			"duration": {
 				"start": "2013-01-01",
-				"end": "2016-01-01"
+				"end": "2016-03-09"
 			},
 			"transcript": "https://saboia.it/assets/pdf/transcripts/2016-04-29-transcript-ufc.pdf"
 		},
@@ -86,8 +86,8 @@
 			"degree": "Exchange Student",
 			"field": "Business Administration and IT",
 			"duration": {
-				"start": "2015-01-01",
-				"end": "2016-01-01"
+				"start": "2015-08-01",
+				"end": "2016-02-17"
 			},
 			"transcript": "https://saboia.it/assets/pdf/transcripts/2016-02-17-transcript-liech.pdf"
 		}
@@ -106,14 +106,14 @@
 		{
 			"title": "Machine Learning",
 			"attained_at": {
-				"date": "2013-01-01"
+				"date": "2013-03-10"
 			},
 			"link": "https://www.coursera.org/api/legacyCertificates.v1/spark/statementOfAccomplishment/152~314678/pdf"
 		},
 		{
 			"title": "Computational Investing, Part I",
 			"attained_at": {
-				"date": "2013-01-01"
+				"date": "2013-01-02"
 			},
 			"link": "https://www.coursera.org/api/legacyCertificates.v1/spark/statementOfAccomplishment/364~314678/pdf"
 		}
@@ -122,14 +122,14 @@
 		{
 			"title": "Over the Cliff: How Brazil’s 2004–2016 Business Cycle Became Its Worst Recession in a Century",
 			"published_at": {
-				"date": "2020-01-01"
+				"date": "2019-12-31"
 			},
 			"doi": "10.35297/qjae.010027"
 		},
 		{
 			"title": "Understanding Bitcoins: Facts and Questions",
 			"published_at": {
-				"date": "2015-01-01"
+				"date": "2015-03-17"
 			},
 			"doi": "10.5935/0034-7140.20150001"
 		}
@@ -148,7 +148,7 @@
 				"title": "Bitcoins - uma moeda global e descentralizada",
 				"author": "Raíssa Guerra",
 				"published_at": {
-					"date": "2022-01-01"
+					"date": "2022-02-15"
 				},
 				"link": "https://saboia.it/assets/pdf/reviews/2022-02-15-raissa-guerra.pdf"
 			},
@@ -156,7 +156,7 @@
 				"title": "Abertura comercial e produtividade: evidências empíricas de correlação nas últimas duas décadas",
 				"author": "Saulo Queiroz",
 				"published_at": {
-					"date": "2021-01-01"
+					"date": "2021-08-27"
 				},
 				"link": "https://saboia.it/assets/pdf/reviews/2021-08-26-saulo-queiroz.pdf"
 			},
@@ -172,7 +172,7 @@
 				"title": "A moeda digital do século XXI: um estudo de caso sobre o Bitcoin",
 				"author": "Hemerson Braga",
 				"published_at": {
-					"date": "2021-01-01"
+					"date": "2021-09-01"
 				},
 				"link": "https://saboia.it/assets/pdf/reviews/2022-07-07-hemerson-braga.pdf"
 			}
@@ -182,7 +182,7 @@
 				"title": "The Political Thought of José Osvaldo de Meira Penna",
 				"author": "Gabriel F. Benzecry",
 				"published_at": {
-					"date": "2023-01-01"
+					"date": "2023-02-09"
 				},
 				"link": "https://jls.mises.org/article/70305-the-political-thought-of-jose-osvaldo-de-meira-penna"
 			}
