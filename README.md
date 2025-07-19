@@ -1,3 +1,5 @@
+![build](https://github.com/brunosaboia/cv/actions/workflows/deploy.yaml/badge.svg)
+
 # Bruno Saboia's CV generator
 ## What
 This is a small pet project that helps me with the building of my CV and deploy it to my website in an automated fashion.
@@ -10,7 +12,7 @@ I have written many versions of my CV. As a programmer, I do not like to repeat 
 Another big reason for doing this project is my believe that you should own your on data, so here it is :)
 
 ## Who
-This project was done by Bruno Saboia de Albuquerque.
+[Bruno Saboia de Albuquerque](https://linkedin.com/in/brunosaboia).
 
 ## License
 This project is licensed under the [MIT License](https://license.md/licenses/mit-license/).
