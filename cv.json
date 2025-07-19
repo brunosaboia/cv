@@ -27,7 +27,7 @@
 				"start": "2024-05-01",
 				"end": "2025-05-01"
 			},
-			"description": "The BIS (Bank for International Settlements) is the bank for central banks. Its mission is to support central banks' pursuit of monetary and financial stability through international cooperation.\n\nMy mission is to work with AI-related projects, mainly working on BIS GPT, an LLM-based chatbot compliant with the security and privacy requirements needed by the bank.",
+			"description": "The BIS (Bank for International Settlements) is the bank for central banks. Its mission is to support central banks' pursuit of monetary and financial stability through international cooperation.\n\nMy mission was to work with AI-related projects, mainly working on BIS GPT, an LLM-based chatbot compliant with the security and privacy requirements needed by the bank.",
 			"technologies": [
 				"TypeScript",
 				"React",
