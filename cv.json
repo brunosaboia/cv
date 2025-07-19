@@ -27,7 +27,7 @@
 				"start": "2024-05-01",
 				"end": "2025-05-01"
 			},
-			"description": "Work on AI-related projects, mainly BIS GPT, an LLM-based chatbot for secure and private communication.",
+			"description": "The BIS (Bank for International Settlements) is the bank for central banks. Its mission is to support central banks' pursuit of monetary and financial stability through international cooperation.\n\nMy mission is to work with AI-related projects, mainly working on BIS GPT, an LLM-based chatbot compliant with the security and privacy requirements needed by the bank.",
 			"technologies": [
 				"TypeScript",
 				"React",
@@ -50,9 +50,8 @@
 				"start": "2022-05-01",
 				"end": "2024-05-01"
 			},
-			"description": "Help Risk Management understand financial risks using IT best practices.",
+			"description": "The BIS (Bank for International Settlements) is the bank for central banks. Its mission is to support central banks' pursuit of monetary and financial stability through international cooperation.\n\nMy mission was to help the Risk Management department to understand the different aspects of financial risk that the bank is incurring, using best IT practices to do so.",
 			"technologies": [
-				".NET",
 				"C\\#",
 				"Git",
 				"Azure DevOps",
@@ -63,6 +62,229 @@
 				"SQL",
 				"Octopus",
 				"ArgoCD"
+			]
+		},
+		{
+			"company": "Clevertech",
+			"location": "Remote (Brazil -- US)",
+			"url": "https://clevertech.biz",
+			"title": "Senior Software Engineer",
+			"duration": {
+				"start": "2022-03-01",
+				"end": "2022-05-01"
+			},
+			"description": "Clevertech is an American IT company, providing consulting services for large customers around the globe.\n\nMy mission was to help customers implementing the best solutions they can in their projects, giving them insights and planning on how to build better software. I also wrote Python code and SQL queries.",
+			"technologies": [
+				"Python",
+				"Apache Airflow",
+				"Postgres"
+			]
+		},
+		{
+			"company": "Tesseract",
+			"location": "Remote (Brazil -- Finland)",
+			"url": "https://tesseractinvestment.com/",
+			"title": "Full-stack developer",
+			"duration": {
+				"start": "2021-09-01",
+				"end": "2022-03-01"
+			},
+			"description": "Tesseract is a Finnish startup which borrows cryptocurrencies, matchmaking investors and lenders. It is Fin-FSA regulated digital asset innovator, backed by reputable investors, focusing on institutional brokerage and asset management.\n\nMy mission was to enhance the infrastructure using IaC (Infrastructure as Code).",
+			"technologies": [
+				"Pulumi",
+				"TypeScript",
+				"GitHub Actions"
+			]
+		},
+		{
+			"company": "BEC Financial Technologies",
+			"location": "Roskilde, Denmark",
+			"url": "https://bec.dk",
+			"title": "Senior Software Engineer",
+			"duration": {
+				"start": "2021-04-01",
+				"end": "2021-09-01"
+			},
+			"description": "BEC is a Danish fintech that provides services for medium-to-small banks. Founded in 1964, is one of the main back-bones of IT services for financial companies in the Nordic country.\n\nMy mission was to enable developers to use the Event Streaming Platform as efficiently as possible.",
+			"technologies": [
+				"Kafka",
+				"Java",
+				"Bash",
+				"OpenShift",
+				"Git",
+				"CDC",
+				"Docker",
+				"Jenkins"
+			]
+		},
+		{
+			"company": "Danske Bank",
+			"location": "Copenhagen, Denmark",
+			"url": "https://danskebank.dk",
+			"title": "Senior Software Engineer",
+			"duration": {
+				"start": "2019-02-01",
+				"end": "2021-03-01"
+			},
+			"description": "Danske Bank A/S is a Danish multinational banking and financial services corporation, founded in 1871.\n\nMy mission was create a new corporate solution to search for payment, named SmartSearch. I was also involved with other tasks and projects.",
+			"technologies": [
+				"Kubernetes",
+				"DB2",
+				"C\\#",
+				"Jenkins",
+				".NET Core",
+				"COBOL",
+				"Kafka",
+				"Java",
+				"Kotlin",
+				"Rust",
+				"ELK stack"
+			]
+		},
+		{
+			"company": "Coinify ApS",
+			"location": "Copenhagen, Denmark",
+			"url": "https://coinify.com",
+			"title": "Senior Software Engineer",
+			"duration": {
+				"start": "2017-08-01",
+				"end": "2019-01-01"
+			},
+			"description": "Coinify is a Nordic startup which enables merchants to accept cryptocurrencies in exchange for their goods and services, either in mortar-and-brick or online stores. The company also provides a cryptocurrency trading platform.\n\nMy mission was to develop new features and improve existing ones, as well as fixing bugs.",
+			"technologies": [
+				"Node.js",
+				"TypeScript",
+				"Docker",
+				"AWS",
+				"PHP",
+				"HTML/CSS"
+			]
+		},
+		{
+			"company": "AH Integration Solutions AS",
+			"location": "Remote (Brazil -- Norway)",
+			"url": "https://web.archive.org/web/20160208120600/http://ahint.no/",
+			"title": "Consultant",
+			"duration": {
+				"start": "2017-02-01",
+				"end": "2017-08-01"
+			},
+			"description": "AH Integrations was a Norwegian company working in the health sector.\n\nMy mission was to act as a development consultant, helping the team to make decisions regarding tech choices, while performing coding tasks.",
+			"technologies": [
+				"C\\#",
+				"WPF",
+				"Crystal Reports"
+			]
+		},
+		{
+			"company": "ITOUCH TECH",
+			"location": "Fortaleza, Brazil",
+			"url": "https://itouchtech.us",
+			"title": "CTO",
+			"duration": {
+				"start": "2015-07-01",
+				"end": "2017-02-01"
+			},
+			"description": "ITOUCH TECH is an US-based company which providers FFLs with a digital way to fill ATF4473 forms.\n\nMy mission was to design and implement the systems, migrating their old solution to more modern technologies, as well as deploying them to the customer stores.",
+			"technologies": [
+				"C\\#",
+				"Windows Forms",
+				"WPF",
+				"Octopus"
+			]
+		},
+		{
+			"company": "HBS",
+			"location": "Fortaleza, Brazil",
+			"url": "https://hbs.tv",
+			"title": "IT Specialist -- contract",
+			"duration": {
+				"start": "2014-04-01",
+				"end": "2014-07-01"
+			},
+			"description": "Founded in 1999, Host Broadcast Services (HBS) was originally established with the core mandate of being the Host Broadcaster (HB) for the 2002 FIFA World Cup Korea/Japan™; the organisation has since developed as a renowned host broadcast expert.\n\nThis was a temporary contract, taking place during the FIFA World Cup in Brazil.\n\nMy mission was to aid HBS to have a stable, smooth and reliable IT site, so it could broadcast the FIFA World Cup to the entire world.",
+			"technologies": [
+				"AD",
+				"Windows Server",
+				"C\\#",
+				"VB",
+				"satellite comm",
+				"optical fiber"
+			]
+		},
+		{
+			"company": "Predictive Science",
+			"location": "Remote (Brazil -- US)",
+			"url": "https://predsci.com",
+			"title": "Senior Software Engineer",
+			"duration": {
+				"start": "2013-01-01",
+				"end": "2014-03-01"
+			},
+			"description": "Predictive Science Inc. is an employee-owned company that delivers state-of-the-art scientific solutions.\n\nMy mission was to develop a system to Verizon to aid the ERT (Executive Response Team) to make informed decisions about customer issues.",
+			"technologies": [
+				"Python",
+				"Kafka",
+				"C\\#"
+			]
+		},
+		{
+			"company": "Upstream Systems",
+			"location": "Athens, Greece",
+			"url": "https://www.upstreamsystems.com",
+			"title": "IT Specialist/Copywriter",
+			"duration": {
+				"start": "2012-07-01",
+				"end": "2012-12-01"
+			},
+			"description": "Upstream Systems is a Greek media company that helps mobile carriers to promote products and services to their customers.\n\nMy mission was to help copywriters to track their work, as well as copywriting in Brazilian Portuguese for Brazilian mobile carriers.",
+			"technologies": [
+				"Excel",
+				"VBA"
+			]
+		},
+		{
+			"company": "Procuradoria Geral do Estado do Ceará - PGECE",
+			"location": "Fortaleza, Brazil",
+			"url": "https://pge.ce.gov.br",
+			"title": "Senior Software Engineer",
+			"duration": {
+				"start": "2011-03-01",
+				"end": "2011-12-01"
+			},
+			"description": "PGE is the state attorney central for the state of Ceará, in Brazil.\n\nFirst, my mission was to aid PGE on its goal to migrate to the digital judiciary process, which was then deemed as necessary by Brazilian Supreme Court.\n\nAfter a promotion, my mission was to create PGE-C2, a cloud-based Android app that would be used for the daily operation of the attorneys.",
+			"technologies": [
+				"Ruby",
+				"Rails",
+				"C\\#",
+				"Mono",
+				"Postgres",
+				"Solr",
+				"Android",
+				"Java"
+			]
+		},
+		{
+			"company": "SecrelNET",
+			"location": "Fortaleza, Brazil",
+			"url": "https://secrelnet.com.br",
+			"title": "Senior Software Engineer",
+			"duration": {
+				"start": "2009-01-01",
+				"end": "2011-12-01"
+			},
+			"description": "SecrelNET is an ISP of Fortaleza, Brazil. It was one of the pioneers of both dial-up and broadband technologies in the area.\n\nMy mission was to create Spider, a project to automate tasks which before its implementation required a human operator (such as creating accounts, websites, directories for hosting purposes, and many more).",
+			"technologies": [
+				".NET",
+				"C\\#",
+				"Java",
+				"C",
+				"Windows Development",
+				"WMI",
+				"VB",
+				"Linux",
+				"Hyper-V",
+				"Active Directory"
 			]
 		}
 	],
@@ -191,7 +413,7 @@
 	"skills": {
 		"programming": [
 			{
-				"name": "C#",
+				"name": "C\\#",
 				"years": 20
 			},
 			{
