@@ -10,6 +10,7 @@ LATEX = pdflatex -synctex=1 -interaction=nonstopmode
 .PHONY: all build check-latex clean cleanall
 
 all: check-latex build
+force-build: cleanall all
 
 build:
 	@echo "Running generator..."

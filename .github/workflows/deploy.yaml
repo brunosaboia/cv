@@ -26,7 +26,7 @@ jobs:
         pip3 install -r requirements.txt || echo "No requirements.txt, skipping pip install"
 
     - name: Build CV PDF
-      run: make cleanall && make all
+      run: make force-build
 
     - name: Clone target repo
       run: |
