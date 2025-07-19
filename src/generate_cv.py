@@ -39,11 +39,11 @@ def latex_escape(text: str) -> str:
 	pattern = re.compile('|'.join(re.escape(k) for k in replacements))
 	return pattern.sub(lambda m: replacements[m.group()], text)
 
-
 def main():
 	parser = argparse.ArgumentParser(description="Generate CV from JSON using Jinja2 + LaTeX")
 	parser.add_argument("--input", "-i", default="data/cv.json", help="Path to the input JSON file")
-	parser.add_argument("--output", "-o", default="cv.tex", help="Path to the output LaTeX file")
+	parser.add_argument("--output", "-o", default="out/cv.tex", help="Path to the output LaTeX file")
+	parser.add_argument("--template-dir", "-t", default="src/template", help="Path to the Jinja template directory")
 	args = parser.parse_args()
 
 	# Load JSON data
@@ -52,7 +52,7 @@ def main():
 
 	# Setup Jinja environment
 	env = Environment(
-		loader=FileSystemLoader("src/template"),
+		loader=FileSystemLoader(args.template_dir),
 		autoescape=False
 	)
 	env.filters["as_date"] = as_date

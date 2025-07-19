@@ -1,5 +1,6 @@
 TARGET = cv
 OUTDIR = out
+
 SOURCE = $(OUTDIR)/$(TARGET).tex
 OUTPUT = $(OUTDIR)/$(TARGET).pdf
 HASH_FILE = data/.cv.json.md5
@@ -8,6 +9,7 @@ LATEX = pdflatex -synctex=1 -interaction=nonstopmode -output-directory=$(OUTDIR)
 PYTHON = python
 GENERATOR = src/generate_cv.py
 INPUT_JSON = data/cv.json
+TEMPLATE_DIR=src/template
 
 AUX_FILES = $(TARGET).aux $(TARGET).log $(TARGET).synctex.gz $(TARGET).out \
             $(TARGET).toc $(TARGET).bbl $(TARGET).blg $(TARGET).fdb_latexmk $(TARGET).fls
@@ -21,7 +23,7 @@ build:
 	@mkdir -p $(OUTDIR)
 	@if [ ! -f $(HASH_FILE) ] || ! md5sum -c $(HASH_FILE) --status; then \
 		echo "Running generator..."; \
-		$(PYTHON) $(GENERATOR) --input $(INPUT_JSON) --output $(SOURCE); \
+		$(PYTHON) $(GENERATOR) --input $(INPUT_JSON) --output $(SOURCE) --template-dir $(TEMPLATE_DIR)  ; \
 		echo "Detected change in cv.json. Compiling..."; \
 		$(LATEX) $(SOURCE); \
 		$(LATEX) $(SOURCE); \
