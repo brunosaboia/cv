@@ -35,7 +35,7 @@ jobs:
 
         git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/saboia-it/saboia-it.github.io.git target-repo
 
-        cp cv.pdf target-repo/assets/pdf/cv/cv.pdf
+        cp out/cv.pdf target-repo/assets/pdf/cv/cv.pdf
 
         cd target-repo
         git add assets/pdf/cv/cv.pdf

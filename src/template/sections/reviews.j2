@@ -1,0 +1,5 @@
+\begin{itemize}
+	{% for thesis in reviews.bachelor_thesis %}
+		\item {\sl {{ thesis.title }}}, {{ thesis.author }} (\href{ {{ thesis.link }} }{ {{ thesis.published_at.date | as_date(fmt_year) }}})
+	{% endfor %}
+\end{itemize}

@@ -1,0 +1,5 @@
+\begin{itemize}
+	{% for cert in certifications %}
+		\item {\sl {{ cert.title }} } (\href{ {{ cert.link }} }{ {{ cert.attained_at.date | as_date(fmt_year) }}})
+	{% endfor %}
+\end{itemize}

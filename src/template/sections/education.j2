@@ -1,0 +1,7 @@
+{% for edu in education %}
+	{\bf {{ edu.institution }}}, {\sl {{ edu.location }}} \hfill {\sl {{ edu.duration.start | as_date(fmt_year) }} -- {{ edu.duration.end | as_date(fmt_year) }} } \\
+	{\sl — \href{ {{ edu.url }} }{ {{ edu.url }} }} \\
+	{\sl {{ edu.degree }} } \\
+	{{ edu.field }} (\href{ {{ edu.transcript }} }{Transcript of records})
+{% endfor %}
+\hfill

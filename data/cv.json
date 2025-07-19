@@ -52,7 +52,7 @@
 			},
 			"description": "The BIS (Bank for International Settlements) is the bank for central banks. Its mission is to support central banks' pursuit of monetary and financial stability through international cooperation.\n\nMy mission was to help the Risk Management department to understand the different aspects of financial risk that the bank is incurring, using best IT practices to do so.",
 			"technologies": [
-				"C\\#",
+				"C#",
 				"Git",
 				"Azure DevOps",
 				"Python",
@@ -130,7 +130,7 @@
 			"technologies": [
 				"Kubernetes",
 				"DB2",
-				"C\\#",
+				"C#",
 				"Jenkins",
 				".NET Core",
 				"COBOL",
@@ -171,7 +171,7 @@
 			},
 			"description": "AH Integrations was a Norwegian company working in the health sector.\n\nMy mission was to act as a development consultant, helping the team to make decisions regarding tech choices, while performing coding tasks.",
 			"technologies": [
-				"C\\#",
+				"C#",
 				"WPF",
 				"Crystal Reports"
 			]
@@ -187,7 +187,7 @@
 			},
 			"description": "ITOUCH TECH is an US-based company which providers FFLs with a digital way to fill ATF4473 forms.\n\nMy mission was to design and implement the systems, migrating their old solution to more modern technologies, as well as deploying them to the customer stores.",
 			"technologies": [
-				"C\\#",
+				"C#",
 				"Windows Forms",
 				"WPF",
 				"Octopus"
@@ -206,7 +206,7 @@
 			"technologies": [
 				"AD",
 				"Windows Server",
-				"C\\#",
+				"C#",
 				"VB",
 				"satellite comm",
 				"optical fiber"
@@ -225,7 +225,7 @@
 			"technologies": [
 				"Python",
 				"Kafka",
-				"C\\#"
+				"C#"
 			]
 		},
 		{
@@ -244,7 +244,7 @@
 			]
 		},
 		{
-			"company": "Procuradoria Geral do Estado do Ceará - PGECE",
+			"company": "PGE-CE",
 			"location": "Fortaleza, Brazil",
 			"url": "https://pge.ce.gov.br",
 			"title": "Senior Software Engineer",
@@ -252,11 +252,11 @@
 				"start": "2011-03-01",
 				"end": "2011-12-01"
 			},
-			"description": "PGE is the state attorney central for the state of Ceará, in Brazil.\n\nFirst, my mission was to aid PGE on its goal to migrate to the digital judiciary process, which was then deemed as necessary by Brazilian Supreme Court.\n\nAfter a promotion, my mission was to create PGE-C2, a cloud-based Android app that would be used for the daily operation of the attorneys.",
+			"description": "Procuradoria Geral do Estado do Ceará (PGE-CE) is the state attorney central for the state of Ceará, in Brazil.\n\nFirst, my mission was to aid PGE on its goal to migrate to the digital judiciary process, which was then deemed as necessary by Brazilian Supreme Court.\n\nAfter a promotion, my mission was to create PGE-C2, a cloud-based Android app that would be used for the daily operation of the attorneys.",
 			"technologies": [
 				"Ruby",
 				"Rails",
-				"C\\#",
+				"C#",
 				"Mono",
 				"Postgres",
 				"Solr",
@@ -276,7 +276,7 @@
 			"description": "SecrelNET is an ISP of Fortaleza, Brazil. It was one of the pioneers of both dial-up and broadband technologies in the area.\n\nMy mission was to create Spider, a project to automate tasks which before its implementation required a human operator (such as creating accounts, websites, directories for hosting purposes, and many more).",
 			"technologies": [
 				".NET",
-				"C\\#",
+				"C#",
 				"Java",
 				"C",
 				"Windows Development",
@@ -413,7 +413,7 @@
 	"skills": {
 		"programming": [
 			{
-				"name": "C\\#",
+				"name": "C#",
 				"years": 20
 			},
 			{
