@@ -1,0 +1,23 @@
+# auxiliary TeX files
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+
+# output
+*.tex
+*.pdf
+!bib/*.pdf  # Exception: track PDF files inside the bib/ directory
+
+# Mac OS files
+.DS_Store
+
+# pyenv files
+.venv/
+
+# output files
+out/

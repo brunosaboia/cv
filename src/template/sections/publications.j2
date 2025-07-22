@@ -1,0 +1,7 @@
+{% if publications %}
+\begin{itemize}
+	{% for pub in publications %}
+		\item {\sl {{ pub.title | latex_escape }} } ({{ pub.published_at.date | as_date(fmt_year) }}), DOI: \href{https://doi.org/{{ pub.doi | latex_escape }}}{ {{ pub.doi | latex_escape }}}
+	{% endfor %}
+\end{itemize}
+{% endif %}

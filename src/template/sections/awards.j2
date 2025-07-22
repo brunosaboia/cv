@@ -1,0 +1,5 @@
+\begin{itemize}
+	{% for award in awards %}
+		\item {\sl {{ award.title }}}, {{ award.place }} (\href{ {{ award.link }} }{ {{ award.attained_at.date | as_date(fmt_month_year) }}})
+	{% endfor %}
+\end{itemize}

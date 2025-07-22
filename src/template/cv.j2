@@ -1,0 +1,43 @@
+\documentclass[margin]{res} % Use the res.cls style
+
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=magenta,
+	urlcolor=cyan,
+	pdftitle={{ personal.name | escape }} - CV,
+	pdfpagemode=FullScreen,
+}
+
+\usepackage{helvet}
+
+\setlength{\textwidth}{5.2in} %default 5.1in % Text width of the document
+
+\begin{document}
+	\moveleft.5\hoffset\centerline{\huge\bf {{ personal.name }}}
+	\moveleft\hoffset\vbox{\hrule width\resumewidth height 1.5pt}
+	\moveleft.5\hoffset\centerline{ {{ personal.address }}}
+	\moveleft.5\hoffset\centerline{e-mail: \href{mailto:{{ personal.email }}}{ {{ personal.email }}} -- Tel: {{ personal.phone }}}
+	\moveleft.5\hoffset\centerline{\sl{\href{ {{ personal.github }} }{GitHub} -- \href{ {{ personal.linkedin }} }{LinkedIn}}}
+
+	\begin{resume}
+
+{% set fmt_year = "%Y" %}
+{% set fmt_month_year = "%B %Y" %}
+
+{% for section in headers %}
+	{% if section %}
+		\section{ {{ section | title }} }
+		{% include "sections/" ~ section ~ ".j2" with context %}
+	{% endif %}
+{% endfor %}
+
+	\end{resume}
+	\vfill
+	\moveleft\hoffset\vbox{\hrule width\resumewidth height 0.4pt}
+	\moveleft.5\hoffset\centerline{\footnotesize{Last updated at {{ now.strftime('%Y-%m-%d') }} -- the most recent copy can be found at \href{ {{ personal.cv_url }}}{ {{ personal.cv_url }}}}}
+	{% if commit_sha %}
+	\moveleft.5\hoffset\centerline{\footnotesize{This CV was generated using \href{https://github.com/brunosaboia/cv}{https://github.com/brunosaboia/cv}. Commit SHA: {{ commit_sha }}}}
+	{% endif %}
+\end{document}

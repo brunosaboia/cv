@@ -1,0 +1,24 @@
+\textbf{Sports:}
+	\begin{itemize}
+		{% for s in hobbies.sports %}
+			\item {{ s }}
+		{% endfor %}
+	\end{itemize}
+	\textbf{Music:}
+	\begin{itemize}
+		{% for m in hobbies.music %}
+			\item {{ m }}
+		{% endfor %}
+	\end{itemize}
+	\textbf{Research:}
+	\begin{itemize}
+		{% for r in hobbies.research %}
+			\item {{ r }}
+		{% endfor %}
+	\end{itemize}
+	\textbf{Other:}
+	\begin{itemize}
+		{% for o in hobbies.other %}
+			\item {{ o }}
+		{% endfor %}
+\end{itemize}

@@ -1,0 +1,246 @@
+{
+	"headers": [
+		"experience",
+		"education",
+		"publications",
+		"reviews",
+		"awards",
+		"certifications",
+		"skills",
+		"hobbies"
+	],
+	"personal": {
+		"name": "John Doe",
+		"address": "123 Innovation Street, 1000 Zürich, CH",
+		"email": "john.doe@example.com",
+		"phone": "+41 76 123 4567",
+		"github": "https://github.com/johndoe",
+		"linkedin": "https://linkedin.com/in/johndoe",
+		"cv_url": "https://saboia.it/assets/pdf/cv/cv-sample.pdf"
+	},
+	"experience": [
+		{
+			"company": "Swiss National Bank",
+			"location": "Zürich, CH",
+			"url": "https://snb.ch",
+			"title": "AI Infrastructure Engineer",
+			"duration": {
+				"start": "2023-06-01",
+				"end": "2025-06-01"
+			},
+			"description": "The Swiss National Bank (SNB) is the central bank of Switzerland.\n\nAt SNB, I contributed to the development and deployment of AI-based financial forecasting models, ensuring compliance with regulatory frameworks and optimizing performance across distributed systems.",
+			"technologies": [
+				"Python",
+				"TensorFlow",
+				"Azure",
+				"Kubernetes",
+				"Docker",
+				"GitHub Actions"
+			]
+		},
+		{
+			"company": "NeuralCore AG",
+			"location": "Bern, CH",
+			"url": "https://neuralcore.ch",
+			"title": "Machine Learning Engineer",
+			"duration": {
+				"start": "2021-01-01",
+				"end": "2023-06-01"
+			},
+			"description": "NeuralCore is a Swiss startup focusing on machine learning solutions for healthcare.\n\nI developed end-to-end pipelines for processing medical imaging data and built models for anomaly detection in MRI scans.",
+			"technologies": [
+				"PyTorch",
+				"FastAPI",
+				"PostgreSQL",
+				"DVC",
+				"MLflow"
+			]
+		},
+		{
+			"company": "GlobalTech Solutions",
+			"location": "Remote (CH -- UK)",
+			"url": "https://globaltech.co.uk",
+			"title": "Software Engineer",
+			"duration": {
+				"start": "2018-09-01",
+				"end": "2020-12-01"
+			},
+			"description": "GlobalTech provides B2B software solutions to clients in the financial industry.\n\nI worked in a cross-functional team developing secure REST APIs and internal web dashboards for financial data visualization.",
+			"technologies": [
+				"JavaScript",
+				"Node.js",
+				"React",
+				"MongoDB",
+				"AWS"
+			]
+		}
+	],
+	"education": [
+		{
+			"institution": "ETH Zürich",
+			"location": "Zürich, Switzerland",
+			"url": "https://ethz.ch",
+			"degree": "Master of Science",
+			"field": "Computer Science",
+			"duration": {
+				"start": "2016-09-01",
+				"end": "2018-06-30"
+			},
+			"transcript": "https://example.com/assets/pdf/transcripts/ethz-ms.pdf"
+		},
+		{
+			"institution": "University of Geneva",
+			"location": "Geneva, Switzerland",
+			"url": "https://unige.ch",
+			"degree": "Bachelor of Science",
+			"field": "Software Engineering",
+			"duration": {
+				"start": "2012-09-01",
+				"end": "2016-06-30"
+			},
+			"transcript": "https://example.com/assets/pdf/transcripts/unige-bs.pdf"
+		}
+	],
+	"awards": [
+		{
+			"title": "AI Innovation Prize",
+			"place": "1st",
+			"attained_at": {
+				"date": "2022-05-20"
+			},
+			"link": "https://example.com/ai-prize-2022"
+		}
+	],
+	"certifications": [
+		{
+			"title": "Deep Learning Specialization",
+			"attained_at": {
+				"date": "2021-07-15"
+			},
+			"link": "https://coursera.org/certification/dl-specialization"
+		},
+		{
+			"title": "Kubernetes Administrator (CKA)",
+			"attained_at": {
+				"date": "2020-11-02"
+			},
+			"link": "https://example.com/cka-cert"
+		}
+	],
+	"publications": [
+		{
+			"title": "Secure Federated Learning for Healthcare Applications",
+			"published_at": {
+				"date": "2023-03-14"
+			},
+			"doi": "10.1234/jai.2023.00321"
+		}
+	],
+	"reviews": {
+		"bachelor_thesis": [
+			{
+				"title": "Blockchain Applications in the Supply Chain",
+				"author": "Emma Keller",
+				"published_at": {
+					"date": "2021-09-10"
+				},
+				"link": "https://example.com/assets/pdf/reviews/2021-09-10-emma-keller.pdf"
+			}
+		],
+		"papers": [
+			{
+				"title": "Data Privacy in Decentralized AI Systems",
+				"author": "Luca Müller",
+				"published_at": {
+					"date": "2022-12-01"
+				},
+				"link": "https://examplejournal.org/article/2022-privacy-ai"
+			}
+		]
+	},
+	"skills": {
+		"programming": [
+			{
+				"name": "Python",
+				"years": 8
+			},
+			{
+				"name": "JavaScript",
+				"years": 6
+			},
+			{
+				"name": "C++",
+				"years": 5
+			},
+			{
+				"name": "TypeScript",
+				"years": 4
+			},
+			{
+				"name": "Rust",
+				"years": 2
+			}
+		],
+		"technologies": [
+			{
+				"name": "Machine Learning",
+				"years": 6
+			},
+			{
+				"name": "DevOps",
+				"years": 5
+			},
+			{
+				"name": "Cloud Architecture",
+				"years": 4
+			},
+			{
+				"name": "LLM",
+				"years": 1
+			}
+		],
+		"languages": [
+			{
+				"name": "English",
+				"level": "Native"
+			},
+			{
+				"name": "French",
+				"level": "Full professional proficiency"
+			},
+			{
+				"name": "German",
+				"level": "Professional working proficiency"
+			}
+		],
+		"other": [
+			"Operating Systems (Linux, Windows)",
+			"Git and CI/CD tools",
+			"Scientific Writing",
+			"Agile/Scrum",
+			"Data Engineering",
+			"Machine Vision",
+			"Prompt Engineering"
+		]
+	},
+	"hobbies": {
+		"sports": [
+			"Trail Running",
+			"Rock Climbing"
+		],
+		"music": [
+			"Violin",
+			"Electronic Music Production"
+		],
+		"research": [
+			"AI Ethics",
+			"Quantum Computing",
+			"Philosophy of Mind"
+		],
+		"other": [
+			"Cooking Fusion Cuisine",
+			"Travel Photography",
+			"3D Printing"
+		]
+	}
+}

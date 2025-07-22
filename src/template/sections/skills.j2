@@ -1,0 +1,24 @@
+\textbf{Programming-related skills:}
+		\begin{itemize}
+			{% for s in skills.programming %}
+				\item {{ s.name | latex_escape }} ({{ s.years }} yrs)
+			{% endfor %}
+		\end{itemize}
+\textbf{Technologies:}
+		\begin{itemize}
+			{% for t in skills.technologies %}
+				\item {{ t.name | latex_escape }} ({{ t.years }} yrs)
+			{% endfor %}
+		\end{itemize}
+\textbf{Languages:}
+		\begin{itemize}
+			{% for l in skills.languages %}
+				\item {{ l.name }} — {{ l.level }}
+			{% endfor %}
+		\end{itemize}
+\textbf{Other skills:}
+		\begin{itemize}
+			{% for o in skills.other %}
+				\item {{ o }}
+			{% endfor %}
+		\end{itemize}
