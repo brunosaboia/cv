@@ -17,7 +17,7 @@ A sample PDF compiled used this project can be found [here](https://saboia.it/as
 ## Who
 [Bruno Saboia de Albuquerque](https://linkedin.com/in/brunosaboia).
 
-# How
+## How
 If for some odd reason you want to run this own your own, it should be straight-forward. There is a `Makefile` that does most of the heavy-lifting.
 
 ## Future
