@@ -12,7 +12,7 @@ Throughout my career, I have had to write many versions of my CV. As a programme
 Another big reason for doing this project is my believe that you should own your on data, so here we are :)
 
 ## Where
-A sample PDF compiled used this project can be found [here](https://https://saboia.it/assets/pdf/cv/cv-sample.pdf).
+A sample PDF compiled used this project can be found [here](https://saboia.it/assets/pdf/cv/cv-sample.pdf).
 
 ## Who
 [Bruno Saboia de Albuquerque](https://linkedin.com/in/brunosaboia).
