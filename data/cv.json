@@ -16,7 +16,8 @@
 		"phone": "+41 76 123 4567",
 		"github": "https://github.com/johndoe",
 		"linkedin": "https://linkedin.com/in/johndoe",
-		"cv_url": "https://saboia.it/assets/pdf/cv/cv-sample.pdf"
+		"cv_url": "https://saboia.it/assets/pdf/cv/cv-sample.pdf",
+		"dob": "1970-01-01"
 	},
 	"experience": [
 		{
