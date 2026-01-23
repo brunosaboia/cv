@@ -15,11 +15,17 @@ latex_format_map = {
 	"yyyy-MM-dd": "%Y-%m-%d"
 }
 
-def parse_duration(date_string_start: str, date_string_end: str, fmt_key = "yyyy-MM-dd") -> str:
+def parse_duration(
+  date_string_start: str,
+  date_string_end: str,
+  fmt_key = "yyyy-MM-dd") -> str:
 	fmt = latex_format_map.get(fmt_key, fmt_key)
 	try:
 		start_date = datetime.strptime(date_string_start, fmt).date()
-		end_date = datetime.strptime(date_string_end, fmt).date()
+		if end_date:
+			end_date = datetime.strptime(date_string_end, fmt).date()
+		else:
+			end_date = datetime.now(timezone.utc).date()
 
 		duration = end_date - start_date
 
@@ -28,12 +34,14 @@ def parse_duration(date_string_start: str, date_string_end: str, fmt_key = "yyyy
 		return humanized_delta.replace("a ", "1 ").replace("an ", "1 ")
 
 	except Exception:
-		return "unknown duration"
+		"Unknown duration"
 
 
-def as_date(date_string: str, fmt_key: str = "yyyy-MM-dd") -> str:
+def as_date(date_string: str, fmt_key: str = "yyyy-MM-dd", consider_present_for_blank = True) -> str:
 	fmt = latex_format_map.get(fmt_key, fmt_key)
 	try:
+		if consider_present_for_blank and not date_string:
+			return "Present"
 		return datetime.strptime(date_string, "%Y-%m-%d").strftime(fmt)
 	except Exception:
 		return date_string
