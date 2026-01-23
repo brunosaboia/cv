@@ -22,7 +22,7 @@ def parse_duration(
 	fmt = latex_format_map.get(fmt_key, fmt_key)
 	try:
 		start_date = datetime.strptime(date_string_start, fmt).date()
-		if end_date:
+		if date_string_end:
 			end_date = datetime.strptime(date_string_end, fmt).date()
 		else:
 			end_date = datetime.now(timezone.utc).date()
