@@ -26,8 +26,7 @@
 			"url": "https://snb.ch",
 			"title": "AI Infrastructure Engineer",
 			"duration": {
-				"start": "2023-06-01",
-				"end": "2025-06-01"
+				"start": "2023-06-01"
 			},
 			"description": "The Swiss National Bank (SNB) is the central bank of Switzerland.\n\nAt SNB, I contributed to the development and deployment of AI-based financial forecasting models, ensuring compliance with regulatory frameworks and optimizing performance across distributed systems.",
 			"technologies": [
@@ -49,13 +48,7 @@
 				"end": "2023-06-01"
 			},
 			"description": "NeuralCore is a Swiss startup focusing on machine learning solutions for healthcare.\n\nI developed end-to-end pipelines for processing medical imaging data and built models for anomaly detection in MRI scans.",
-			"technologies": [
-				"PyTorch",
-				"FastAPI",
-				"PostgreSQL",
-				"DVC",
-				"MLflow"
-			]
+			"technologies": ["PyTorch", "FastAPI", "PostgreSQL", "DVC", "MLflow"]
 		},
 		{
 			"company": "GlobalTech Solutions",
@@ -67,13 +60,7 @@
 				"end": "2020-12-01"
 			},
 			"description": "GlobalTech provides B2B software solutions to clients in the financial industry.\n\nI worked in a cross-functional team developing secure REST APIs and internal web dashboards for financial data visualization.",
-			"technologies": [
-				"JavaScript",
-				"Node.js",
-				"React",
-				"MongoDB",
-				"AWS"
-			]
+			"technologies": ["JavaScript", "Node.js", "React", "MongoDB", "AWS"]
 		}
 	],
 	"education": [
@@ -225,23 +212,9 @@
 		]
 	},
 	"hobbies": {
-		"sports": [
-			"Trail Running",
-			"Rock Climbing"
-		],
-		"music": [
-			"Violin",
-			"Electronic Music Production"
-		],
-		"research": [
-			"AI Ethics",
-			"Quantum Computing",
-			"Philosophy of Mind"
-		],
-		"other": [
-			"Cooking Fusion Cuisine",
-			"Travel Photography",
-			"3D Printing"
-		]
+		"sports": ["Trail Running", "Rock Climbing"],
+		"music": ["Violin", "Electronic Music Production"],
+		"research": ["AI Ethics", "Quantum Computing", "Philosophy of Mind"],
+		"other": ["Cooking Fusion Cuisine", "Travel Photography", "3D Printing"]
 	}
 }
