@@ -1,5 +1,11 @@
 \documentclass[margin]{res} % Use the res.cls style
 
+% T1 encoding + Latin Modern: accented characters (ü, é, ...) become real
+% glyphs instead of composed accents, so PDF text extraction (ATS, copy-paste)
+% yields "Zürich" rather than "Z¨urich".
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
 \usepackage{hyperref}
 \hypersetup{
 	colorlinks=true,
