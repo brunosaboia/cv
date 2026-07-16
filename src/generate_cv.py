@@ -79,11 +79,26 @@ def main():
 	parser.add_argument("--output", "-o", default="out/cv.tex", help="Path to the output LaTeX file")
 	parser.add_argument("--template-dir", "-t", default="src/template", help="Path to the Jinja template directory")
 	parser.add_argument("--commit-sha", "-c", default=None, help="The hash of the commit that generated the CV")
+	parser.add_argument("--market", "-m", default="default", help="Target market code (e.g. CH, BR) selecting presentation rules")
+	parser.add_argument("--market-rules", default="data/target_market_rules.json", help="Path to the market rules JSON file")
 	args = parser.parse_args()
 
 	# Load JSON data
 	with open(args.input, encoding="utf-8") as f:
 		data = json.load(f)
+
+	# Market presentation rules: country-specific flags merged over defaults.
+	# Templates read them via market.get("flag", true), so a missing file or
+	# unknown market degrades to showing everything.
+	market = {}
+	try:
+		with open(args.market_rules, encoding="utf-8") as f:
+			rules = json.load(f)
+		market = {**rules.get("default", {}), **rules.get(args.market, {})}
+		if args.market != "default" and args.market not in rules:
+			print(f"⚠️ Market '{args.market}' not found in {args.market_rules}; using defaults")
+	except FileNotFoundError:
+		print(f"⚠️ Market rules file not found: {args.market_rules}; showing all fields")
 
 	# Setup Jinja environment
 	env = Environment(
@@ -96,6 +111,7 @@ def main():
 	env.globals["now"] = datetime.now(timezone.utc)
 	env.globals["parse_duration"] = parse_duration
 	env.globals["commit_sha"] = args.commit_sha
+	env.globals["market"] = market
 
 	# Render template
 	template = env.get_template("cv.j2")

@@ -1,0 +1,33 @@
+{
+	"default": {
+		"show_photo": false,
+		"show_dob": true,
+		"show_address": true,
+		"show_marital_status": false
+	},
+	"CH": {
+		"show_photo": true,
+		"show_dob": true,
+		"show_address": true
+	},
+	"DE": {
+		"show_photo": true,
+		"show_dob": true,
+		"show_address": true
+	},
+	"BR": {
+		"show_photo": false,
+		"show_dob": false,
+		"show_address": false
+	},
+	"US": {
+		"show_photo": false,
+		"show_dob": false,
+		"show_address": false
+	},
+	"UK": {
+		"show_photo": false,
+		"show_dob": false,
+		"show_address": false
+	}
+}

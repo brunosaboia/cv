@@ -4,6 +4,8 @@ OUTDIR = out
 SRC_DIR = src
 TEMPLATE_DIR = $(SRC_DIR)/template
 INPUT_JSON = data/cv.json
+MARKET_RULES = data/target_market_rules.json
+MARKET ?= default
 
 VENV ?= .venv
 VENV_BIN = $(VENV)/bin
@@ -28,7 +30,7 @@ all: setup-all check-latex build
 build: check-venv
 	@mkdir -p $(OUTDIR)
 	@echo "Generating CV LaTeX source..."
-	@$(PYTHON) $(GENERATOR) --input $(INPUT_JSON) --output $(SOURCE) --template-dir $(TEMPLATE_DIR) --commit-sha $(COMMIT_SHA)
+	@$(PYTHON) $(GENERATOR) --input $(INPUT_JSON) --output $(SOURCE) --template-dir $(TEMPLATE_DIR) --commit-sha $(COMMIT_SHA) --market $(MARKET) --market-rules $(MARKET_RULES)
 	@$(LATEX) $(SOURCE)
 
 check-latex:
