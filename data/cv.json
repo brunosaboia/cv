@@ -1,5 +1,6 @@
 {
 	"headers": [
+		"summary",
 		"experience",
 		"education",
 		"publications",
@@ -19,6 +20,7 @@
 		"cv_url": "https://saboia.it/assets/pdf/cv/cv-sample.pdf",
 		"dob": "1970-01-01"
 	},
+	"summary": "AI/ML engineer with 8+ years of experience across finance and healthcare, specialized in taking machine-learning systems from research to regulated production environments.",
 	"experience": [
 		{
 			"company": "Swiss National Bank",
