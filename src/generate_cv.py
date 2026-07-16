@@ -1,5 +1,4 @@
 import argparse
-import humanize
 import json
 import re
 from datetime import datetime, timezone
@@ -27,14 +26,24 @@ def parse_duration(
 		else:
 			end_date = datetime.now(timezone.utc).date()
 
-		duration = end_date - start_date
+		# Exact calendar arithmetic, month granularity: days are too much
+		# detail for a CV, and coarser rounding undersells tenure.
+		months = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
+		if end_date.day < start_date.day:
+			months -= 1
+		years, months = divmod(max(months, 0), 12)
 
-		humanized_delta = humanize.naturaldelta(value=duration)
-
-		return humanized_delta.replace("a ", "1 ").replace("an ", "1 ")
+		parts = []
+		if years:
+			parts.append(f"{years} year{'s' if years != 1 else ''}")
+		if months:
+			parts.append(f"{months} month{'s' if months != 1 else ''}")
+		if not parts:
+			return "less than a month"
+		return ", ".join(parts)
 
 	except Exception:
-		"Unknown duration"
+		return "Unknown duration"
 
 
 def as_date(date_string: str, fmt_key: str = "yyyy-MM-dd", consider_present_for_blank = True) -> str:
