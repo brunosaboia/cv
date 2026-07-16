@@ -1,7 +1,8 @@
 {% if publications %}
 \begin{itemize}
 	{% for pub in publications %}
-		\item {\sl {{ pub.title | latex_escape }} } ({{ pub.published_at.date | as_date(fmt_year) }}), DOI: \href{https://doi.org/{{ pub.doi | latex_escape }}}{ {{ pub.doi | latex_escape }}}
+		{# \nolinkurl makes the DOI breakable at dots/slashes, preventing margin overflow #}
+		\item {\sl {{ pub.title | latex_escape }} } ({{ pub.published_at.date | as_date(fmt_year) }}), DOI: \href{https://doi.org/{{ pub.doi | latex_escape }}}{\nolinkurl{ {{- pub.doi -}} }}
 	{% endfor %}
 \end{itemize}
 {% endif %}
