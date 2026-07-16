@@ -1,5 +1,11 @@
+{% set labels = {"bachelor_thesis": "Bachelor theses", "papers": "Papers"} %}
+{% for category, items in reviews.items() %}
+	{% if items %}
+\textbf{ {{ labels.get(category, category | replace("_", " ") | title) }}:}
 \begin{itemize}
-	{% for thesis in reviews.bachelor_thesis %}
-		\item {\sl {{ thesis.title }}}, {{ thesis.author }} (\href{ {{ thesis.link }} }{ {{ thesis.published_at.date | as_date(fmt_year) }}})
-	{% endfor %}
+		{% for review in items %}
+	\item {\sl {{ review.title | latex_escape }}}, {{ review.author | latex_escape }} (\href{ {{ review.link }} }{ {{ review.published_at.date | as_date(fmt_year) }}})
+		{% endfor %}
 \end{itemize}
+	{% endif %}
+{% endfor %}
