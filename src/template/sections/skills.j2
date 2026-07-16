@@ -1,13 +1,13 @@
 \textbf{Programming-related skills:}
 		\begin{itemize}
 			{% for s in skills.programming %}
-				\item {{ s.name | latex_escape }} ({{ s.years }} yrs)
+				\item {{ s.name | latex_escape }} ({{ s.years }} yr{% if s.years != 1 %}s{% endif %})
 			{% endfor %}
 		\end{itemize}
 \textbf{Technologies:}
 		\begin{itemize}
 			{% for t in skills.technologies %}
-				\item {{ t.name | latex_escape }} ({{ t.years }} yrs)
+				\item {{ t.name | latex_escape }} ({{ t.years }} yr{% if t.years != 1 %}s{% endif %})
 			{% endfor %}
 		\end{itemize}
 \textbf{Languages:}
