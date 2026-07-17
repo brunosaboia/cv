@@ -1,6 +1,6 @@
 {
 	"default": {
-		"show_photo": false,
+		"show_photo": true,
 		"show_dob": true,
 		"show_address": true,
 		"show_marital_status": false

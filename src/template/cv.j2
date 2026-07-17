@@ -17,6 +17,7 @@
 }
 
 \usepackage{helvet}
+\usepackage{graphicx}
 
 \setlength{\textwidth}{5.2in} %default 5.1in % Text width of the document
 
@@ -35,6 +36,12 @@
 	{% endif %}
 	\moveleft.5\hoffset\centerline{e-mail: \href{mailto:{{ personal.email }}}{ {{ personal.email }}} -- Tel: {{ personal.phone }}}
 	\moveleft.5\hoffset\centerline{\sl{\href{ {{ personal.github }} }{GitHub} -- \href{ {{ personal.linkedin }} }{LinkedIn}}}
+	{% if personal.photo and market.get("show_photo", true) %}
+	% Zero-height, bottom-anchored box: the photo floats over the empty right
+	% flank of the centered header (right edge aligned with the rule) without
+	% taking vertical space. Emitted last so it paints over the header rule.
+	\moveleft\hoffset\vbox to 0pt{\vss\moveright\dimexpr\resumewidth-1in\relax\hbox{\includegraphics[width=1in]{{ '{' ~ personal.photo ~ '}' }}}}
+	{% endif %}
 
 	\begin{resume}
 
