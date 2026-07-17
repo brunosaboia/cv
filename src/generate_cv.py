@@ -1,6 +1,8 @@
 import argparse
 import json
+import os
 import re
+import sys
 from datetime import datetime, timezone
 from jinja2 import Environment, FileSystemLoader
 
@@ -55,6 +57,11 @@ def as_date(date_string: str, fmt_key: str = "yyyy-MM-dd", consider_present_for_
 	except Exception:
 		return date_string
 
+def warn_or_fail(message: str, strict: bool, fallback: str = "") -> None:
+	if strict:
+		sys.exit(f"❌ {message}")
+	print(f"⚠️ {message}{fallback}")
+
 def latex_escape(text: str) -> str:
 	if not isinstance(text, str):
 		return text
@@ -80,25 +87,43 @@ def main():
 	parser.add_argument("--template-dir", "-t", default="src/template", help="Path to the Jinja template directory")
 	parser.add_argument("--commit-sha", "-c", default=None, help="The hash of the commit that generated the CV")
 	parser.add_argument("--market", "-m", default="default", help="Target market code (e.g. CH, BR) selecting presentation rules")
-	parser.add_argument("--market-rules", default="data/target_market_rules.json", help="Path to the market rules JSON file")
+	parser.add_argument("--market-rules", default="config/market_rules.json", help="Path to the market rules JSON file")
+	parser.add_argument("--data-dir", "-d", default=None, help="Directory relative asset paths in the JSON (e.g. the photo) resolve against; defaults to the input file's directory")
+	parser.add_argument("--strict", action="store_true", help="Fail on unknown market, missing rules file, or missing assets instead of warning")
 	args = parser.parse_args()
 
 	# Load JSON data
 	with open(args.input, encoding="utf-8") as f:
 		data = json.load(f)
 
+	# Absolute so the rendered .tex is independent of pdflatex's working directory.
+	data_dir = os.path.abspath(args.data_dir) if args.data_dir else os.path.dirname(os.path.abspath(args.input))
+
 	# Market presentation rules: country-specific flags merged over defaults.
 	# Templates read them via market.get("flag", true), so a missing file or
-	# unknown market degrades to showing everything.
+	# unknown market degrades to showing everything — unless --strict.
 	market = {}
 	try:
 		with open(args.market_rules, encoding="utf-8") as f:
 			rules = json.load(f)
 		market = {**rules.get("default", {}), **rules.get(args.market, {})}
 		if args.market != "default" and args.market not in rules:
-			print(f"⚠️ Market '{args.market}' not found in {args.market_rules}; using defaults")
+			warn_or_fail(f"Market '{args.market}' not found in {args.market_rules}", args.strict, "; using defaults")
 	except FileNotFoundError:
-		print(f"⚠️ Market rules file not found: {args.market_rules}; showing all fields")
+		warn_or_fail(f"Market rules file not found: {args.market_rules}", args.strict, "; showing all fields")
+
+	# Resolve the photo against the data directory so the data repo stays
+	# self-contained wherever the pipeline checks it out, and fail fast here
+	# rather than deep inside pdflatex.
+	personal = data.get("personal", {})
+	photo = personal.get("photo")
+	if photo and market.get("show_photo", True):
+		photo_path = photo if os.path.isabs(photo) else os.path.join(data_dir, photo)
+		if os.path.isfile(photo_path):
+			personal["photo"] = photo_path
+		else:
+			warn_or_fail(f"Photo not found: {photo_path}", args.strict, "; omitting it")
+			personal.pop("photo", None)
 
 	# Setup Jinja environment
 	env = Environment(

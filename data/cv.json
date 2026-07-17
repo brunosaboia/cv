@@ -19,7 +19,7 @@
 		"linkedin": "https://linkedin.com/in/johndoe",
 		"cv_url": "https://saboia.it/assets/pdf/cv/cv-sample.pdf",
 		"dob": "1970-01-01",
-		"photo": "data/profile.png"
+		"photo": "profile.png"
 	},
 	"summary": "AI/ML engineer with 8+ years of experience across finance and healthcare, specialized in taking machine-learning systems from research to regulated production environments.",
 	"experience": [
