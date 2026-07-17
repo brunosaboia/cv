@@ -18,7 +18,7 @@ A sample PDF compiled used this project can be found [here](https://saboia.it/as
 [Bruno Saboia de Albuquerque](https://linkedin.com/in/brunosaboia).
 
 ## How
-If for some odd reason you want to run this own your own, it should be straight-forward. There is a `Makefile` that does most of the heavy-lifting.
+If for some odd reason you want to run this own your own, it should be straight-forward. You need [uv](https://docs.astral.sh/uv/) and a LaTeX distribution providing `pdflatex`; a `Makefile` does most of the heavy-lifting (`make setup-dev` once, then `make build`). Python dependencies are declared in `pyproject.toml` and locked in `uv.lock`.
 
 ## Future
 I want to have various CVs that I can tailor to a specific need or market. For example, in Switzerland, CVs with photos are well-received—on the other hand, in Brazil, this is frowned upon. Adjusting a CV for a specific role —for example, by changing some wording or emphasizing some skill set—is also something that I want to look further. Also, exploring LLMs to rephrase some wording for some specific context might sound like a good idea.

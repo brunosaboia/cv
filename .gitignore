@@ -21,3 +21,6 @@
 
 # output files
 out/
+
+# WSL files
+*:Zone.Identifier

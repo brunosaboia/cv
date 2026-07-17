@@ -1,0 +1,14 @@
+[project]
+name = "cv-generator"
+version = "0.1.0"
+description = "Bruno Saboia's CV generator"
+requires-python = ">=3.13"
+dependencies = [
+    "jinja2",
+    "humanize",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit",
+]

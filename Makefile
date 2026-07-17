@@ -7,9 +7,8 @@ INPUT_JSON = data/cv.json
 MARKET_RULES = data/target_market_rules.json
 MARKET ?= default
 
-VENV ?= .venv
-VENV_BIN = $(VENV)/bin
-PYTHON = $(VENV_BIN)/python
+UV = uv
+PYTHON = $(UV) run python
 LATEX = pdflatex -synctex=1 -interaction=nonstopmode -output-directory=$(OUTDIR)
 
 GENERATOR = $(SRC_DIR)/generate_cv.py
@@ -18,16 +17,15 @@ OUTPUT = $(OUTDIR)/$(TARGET).pdf
 COMMIT_SHA = $(shell git rev-parse --short HEAD)
 
 # ========== PHONY TARGETS ==========
-.PHONY: all build clean cleanall check-latex \
+.PHONY: all build clean cleanall check-latex check-uv \
         setup setup-dev install install-dev \
-        create-venv prod-build local-build \
-        setup-all check-venv
+        prod-build local-build setup-all
 
 # ========== DEFAULT TARGET ==========
 all: setup-all check-latex build
 
 # ========== BUILD ==========
-build: check-venv
+build: check-uv
 	@mkdir -p $(OUTDIR)
 	@echo "Generating CV LaTeX source..."
 	@$(PYTHON) $(GENERATOR) --input $(INPUT_JSON) --output $(SOURCE) --template-dir $(TEMPLATE_DIR) --commit-sha $(COMMIT_SHA) --market $(MARKET) --market-rules $(MARKET_RULES)
@@ -36,8 +34,8 @@ build: check-venv
 check-latex:
 	@command -v pdflatex >/dev/null 2>&1 || { echo "Error: pdflatex is not installed."; exit 1; }
 
-check-venv:
-	@test -x "$(PYTHON)" || (echo "Missing venv! Run: make setup-dev"; exit 1)
+check-uv:
+	@command -v $(UV) >/dev/null 2>&1 || { echo "Error: uv is not installed. See https://docs.astral.sh/uv/getting-started/installation/"; exit 1; }
 
 clean:
 	@rm -f $(OUTDIR)/*.{aux,log,synctex.gz,out,toc,bbl,blg,fdb_latexmk,fls,tex}
@@ -46,28 +44,15 @@ cleanall: clean
 	@rm -rf $(OUTDIR)/
 
 # ========== ENVIRONMENT ==========
-create-venv:
-	@if [ ! -d $(VENV) ]; then \
-		echo "Creating virtual environment at $(VENV)..."; \
-		PY=$(shell command -v python3 || command -v python); \
-		if [ -z "$$PY" ]; then \
-			echo "Error: No suitable Python interpreter found."; \
-			exit 1; \
-		fi; \
-		$$PY -m venv $(VENV); \
-	fi
-	@$(PYTHON) -m pip install --upgrade pip
+install: check-uv
+	@$(UV) sync --no-dev
 
-install:
-	@$(PYTHON) -m pip install -r $(SRC_DIR)/requirements.txt
+install-dev: check-uv
+	@$(UV) sync
+	@$(UV) run pre-commit install
 
-install-dev:
-	@$(PYTHON) -m pip install -r $(SRC_DIR)/requirements-dev.txt
-	@$(PYTHON) -m pip show pre-commit >/dev/null || { echo "ERROR: pre-commit not installed"; exit 1; }
-	@$(PYTHON) -m pre_commit install
-
-setup-dev: create-venv install install-dev
-setup: create-venv install
+setup-dev: install-dev
+setup: install
 setup-all: setup-dev
 
 # ========== PROD / LOCAL ==========
