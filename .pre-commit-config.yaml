@@ -11,6 +11,12 @@ repos:
       - id: trailing-whitespace
   - repo: local
     hooks:
+      - id: make-test
+        name: Run unit tests
+        entry: make test
+        language: system
+        pass_filenames: false
+        always_run: true
       - id: make-build-default
         name: Build CV (default market)
         entry: make local-build

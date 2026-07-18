@@ -16,11 +16,17 @@
 # Mac OS files
 .DS_Store
 
-# pyenv files
+# Python
 .venv/
+__pycache__/
+.pytest_cache/
 
 # output files
 out/
 
 # WSL files
 *:Zone.Identifier
+
+# Claude local settings
+.claude/*.local.json
+.claude/*.local.md

@@ -33,7 +33,7 @@ SOURCE = $(OUTDIR)/$(TARGET).tex
 OUTPUT = $(OUTDIR)/$(TARGET).pdf
 
 # ========== PHONY TARGETS ==========
-.PHONY: all build clean cleanall check-latex check-uv \
+.PHONY: all build test clean cleanall check-latex check-uv \
         setup setup-dev install install-dev install-frozen \
         prod-build local-build setup-all
 
@@ -46,6 +46,9 @@ build: check-uv
 	@echo "Generating CV LaTeX source..."
 	@$(PYTHON) $(GENERATOR) $(GEN_FLAGS)
 	@$(LATEX) $(SOURCE)
+
+test: check-uv
+	@$(UV) run pytest
 
 check-latex:
 	@command -v pdflatex >/dev/null 2>&1 || { echo "Error: pdflatex is not installed."; exit 1; }

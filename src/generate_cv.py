@@ -66,7 +66,7 @@ def latex_escape(text: str) -> str:
 	if not isinstance(text, str):
 		return text
 	replacements = {
-		'\\': r'\\',
+		'\\': r'\textbackslash{}',
 		'{': r'\{',
 		'}': r'\}',
 		'#': r'\#',
