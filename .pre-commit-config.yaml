@@ -1,8 +1,25 @@
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-json
+        # launch.json is JSONC (comments), which check-json rejects
+        exclude: ^\.vscode/
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
   - repo: local
     hooks:
-      - id: make-force-build
-        name: Build locally before commit
+      - id: make-build-default
+        name: Build CV (default market)
         entry: make local-build
         language: system
-        types: [text]
+        pass_filenames: false
+        always_run: true
+      - id: make-build-br
+        name: Build CV (BR market)
+        entry: make local-build MARKET=BR
+        language: system
+        pass_filenames: false
+        always_run: true

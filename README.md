@@ -44,4 +44,3 @@ I want to have various CVs that I can tailor to a specific need or market. For e
 
 ## License
 This project is licensed under the [MIT License](https://license.md/licenses/mit-license/).
-
