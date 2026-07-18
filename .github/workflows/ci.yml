@@ -32,7 +32,8 @@ jobs:
         sudo apt-get install -y --no-install-recommends \
           texlive-latex-recommended \
           texlive-fonts-recommended \
-          texlive-latex-extra
+          texlive-latex-extra \
+          lmodern
 
     - name: Build sample CV (default market, strict)
       run: make build STRICT=1
