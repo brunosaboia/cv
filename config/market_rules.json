@@ -1,8 +1,8 @@
 {
 	"default": {
-		"show_photo": true,
-		"show_dob": true,
-		"show_address": true,
+		"show_photo": false,
+		"show_dob": false,
+		"show_address": false,
 		"show_marital_status": false
 	},
 	"CH": {

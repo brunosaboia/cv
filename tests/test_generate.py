@@ -24,8 +24,14 @@ def run_main(tmp_path, monkeypatch, *extra_args):
 
 
 class TestMarkets:
-	def test_default_market_shows_everything(self, tmp_path, monkeypatch):
+	def test_default_market_is_conservative(self, tmp_path, monkeypatch):
 		tex = run_main(tmp_path, monkeypatch)
+		assert "includegraphics" not in tex
+		assert "Date of birth:" not in tex
+		assert "Address:" not in tex
+
+	def test_ch_market_shows_everything(self, tmp_path, monkeypatch):
+		tex = run_main(tmp_path, monkeypatch, "--market", "CH")
 		photo = REPO_ROOT / "data" / "profile.png"
 		assert f"\\includegraphics[width=1in]{{{photo}}}" in tex
 		assert photo.is_absolute()
@@ -41,7 +47,7 @@ class TestMarkets:
 	def test_unknown_market_warns_and_uses_defaults(self, tmp_path, monkeypatch, capsys):
 		tex = run_main(tmp_path, monkeypatch, "--market", "XX")
 		assert "not found" in capsys.readouterr().out
-		assert "includegraphics" in tex
+		assert "includegraphics" not in tex
 
 	def test_unknown_market_strict_fails(self, tmp_path, monkeypatch):
 		with pytest.raises(SystemExit):
@@ -52,15 +58,21 @@ class TestPhotoResolution:
 	def test_missing_photo_is_omitted(self, tmp_path, monkeypatch, capsys):
 		empty_data_dir = tmp_path / "assets"
 		empty_data_dir.mkdir()
-		tex = run_main(tmp_path, monkeypatch, "--data-dir", str(empty_data_dir))
+		tex = run_main(tmp_path, monkeypatch, "--market", "CH", "--data-dir", str(empty_data_dir))
 		assert "Photo not found" in capsys.readouterr().out
 		assert "includegraphics" not in tex
+
+	def test_missing_photo_ignored_when_market_hides_it(self, tmp_path, monkeypatch, capsys):
+		empty_data_dir = tmp_path / "assets"
+		empty_data_dir.mkdir()
+		run_main(tmp_path, monkeypatch, "--market", "BR", "--data-dir", str(empty_data_dir), "--strict")
+		assert "Photo not found" not in capsys.readouterr().out
 
 	def test_missing_photo_strict_fails(self, tmp_path, monkeypatch):
 		empty_data_dir = tmp_path / "assets"
 		empty_data_dir.mkdir()
 		with pytest.raises(SystemExit):
-			run_main(tmp_path, monkeypatch, "--data-dir", str(empty_data_dir), "--strict")
+			run_main(tmp_path, monkeypatch, "--market", "CH", "--data-dir", str(empty_data_dir), "--strict")
 
 
 class TestCommitSha:
