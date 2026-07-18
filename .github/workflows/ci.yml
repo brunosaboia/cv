@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+
+    - name: Run unit tests
+      run: make test
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+
+    - name: Install LaTeX
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          texlive-latex-recommended \
+          texlive-fonts-recommended \
+          texlive-latex-extra
+
+    - name: Build sample CV (default market, strict)
+      run: make build STRICT=1
+
+    - name: Build sample CV (BR market, strict)
+      run: make build MARKET=BR STRICT=1
+
+    - name: Upload sample PDFs
+      uses: actions/upload-artifact@v4
+      with:
+        name: sample-cvs
+        path: out/*.pdf
+        retention-days: 14
