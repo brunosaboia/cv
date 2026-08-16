@@ -1,4 +1,5 @@
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -22,6 +23,12 @@ def run_main(tmp_path, monkeypatch, *extra_args):
 	monkeypatch.setattr(sys, "argv", argv)
 	main()
 	return output.read_text(encoding="utf-8")
+
+
+def strip_latex_comments(tex: str) -> str:
+	"""Drop whole-line % comments, so asserting a command is absent isn't
+	defeated by a comment explaining why it is absent."""
+	return "\n".join(line for line in tex.splitlines() if not line.lstrip().startswith("%"))
 
 
 class TestMarkets:
@@ -70,6 +77,42 @@ class TestLanguagesSection:
 		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
 		assert "languages" in data
 		assert "languages" not in data["skills"]
+
+
+class TestLinks:
+	def test_links_are_on_by_default(self, tmp_path, monkeypatch):
+		tex = run_main(tmp_path, monkeypatch)
+		assert "\\href{mailto:john.doe@example.com}" in tex
+
+	def test_no_links_defines_weburl_without_a_link(self, tmp_path, monkeypatch):
+		tex = run_main(tmp_path, monkeypatch, "--no-links")
+		assert "\\newcommand{\\weburl}[1]{{\\urlstyle{same}\\nolinkurl{#1}}}" in tex
+
+	def test_no_links_leaves_no_href(self, tmp_path, monkeypatch):
+		# \href is the only thing that emits a PDF link annotation, so one
+		# unguarded call anywhere in a section template silently defeats the
+		# whole option -- which is exactly how experience.j2 was first missed.
+		tex = run_main(tmp_path, monkeypatch, "--market", "CH", "--no-links")
+		assert "\\href" not in strip_latex_comments(tex)
+
+	def test_no_links_promotes_labelled_urls_to_text(self, tmp_path, monkeypatch):
+		# These four were reachable only through their link text, so dropping
+		# the annotation has to surface the address instead of losing it.
+		tex = run_main(tmp_path, monkeypatch, "--no-links")
+		for url in (
+			"https://github.com/johndoe",
+			"https://linkedin.com/in/johndoe",
+			"https://example.com/assets/pdf/transcripts/ethz-ms.pdf",
+			"https://example.com/ai-prize-2022",
+		):
+			# \weburl inline, \weburlline where it gets a ragged line of its own.
+			assert re.search(rf"\\weburl(?:line)?\{{{re.escape(url)}\}}", tex)
+
+	def test_keeps_its_labels_when_linked(self, tmp_path, monkeypatch):
+		tex = run_main(tmp_path, monkeypatch)
+		assert "{GitHub}" in tex
+		assert "{Transcript of records}" in tex
+		assert "\\weburl" not in tex
 
 
 class TestPhotoResolution:

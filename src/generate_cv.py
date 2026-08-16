@@ -107,6 +107,8 @@ def main():
 	parser.add_argument("--market", "-m", default="default", help="Target market code (e.g. CH, BR) selecting presentation rules")
 	parser.add_argument("--market-rules", default="config/market_rules.json", help="Path to the market rules JSON file")
 	parser.add_argument("--data-dir", "-d", default=None, help="Directory relative asset paths in the JSON (e.g. the photo) resolve against; defaults to the input file's directory")
+	parser.add_argument("--links", action=argparse.BooleanOptionalAction, default=True,
+		help="Emit clickable PDF link annotations. --no-links keeps the URL as text but drops the annotation, for employers whose systems object to them")
 	parser.add_argument("--strict", action="store_true", help="Fail on unknown market, missing rules file, or missing assets instead of warning")
 	args = parser.parse_args()
 
@@ -155,6 +157,7 @@ def main():
 	env.globals["parse_duration"] = parse_duration
 	env.globals["commit_sha"] = args.commit_sha
 	env.globals["market"] = market
+	env.globals["links"] = args.links
 	env.globals["parse_address"] = parse_address
 
 	# Render template

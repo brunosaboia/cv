@@ -2,14 +2,13 @@
 # Everything here is overridable from the command line or the environment,
 # e.g.:  make build DATA_DIR=/path/to/cv-data MARKET=CH
 MARKET ?= default
+# LINKS=0 keeps every URL as readable text but emits no clickable PDF link
+# annotations, for employers whose systems object to them.
+LINKS ?= 1
 
-# Default output name carries the market so matrix builds don't overwrite
-# each other; the default market keeps the plain name.
-ifeq ($(MARKET),default)
-TARGET ?= cv
-else
-TARGET ?= cv-$(MARKET)
-endif
+# Default output name carries whatever is non-default, so matrix builds don't
+# overwrite each other: cv, cv-CH, cv-nolinks.
+TARGET ?= cv$(if $(filter-out default,$(MARKET)),-$(MARKET))$(if $(filter 0,$(LINKS)),-nolinks)
 
 OUTDIR ?= out
 SRC_DIR = src
@@ -28,6 +27,7 @@ GENERATOR = $(SRC_DIR)/generate_cv.py
 GEN_FLAGS = --input $(INPUT_JSON) --output $(SOURCE) --template-dir $(TEMPLATE_DIR) \
             --data-dir $(DATA_DIR) --commit-sha $(COMMIT_SHA) \
             --market $(MARKET) --market-rules $(MARKET_RULES) \
+            $(if $(filter 0,$(LINKS)),--no-links) \
             $(if $(filter 1,$(STRICT)),--strict)
 SOURCE = $(OUTDIR)/$(TARGET).tex
 OUTPUT = $(OUTDIR)/$(TARGET).pdf

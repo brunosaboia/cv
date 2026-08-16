@@ -4,7 +4,10 @@
 \textbf{ {{ labels.get(category, category | replace("_", " ") | title) }}:}
 \begin{itemize}
 		{% for review in items %}
-	\item {\sl {{ review.title | latex_escape }}}, {{ review.author | latex_escape }} (\href{ {{ review.link }} }{ {{ review.published_at.date | as_date(fmt_year) }}})
+	\item {\sl {{ review.title | latex_escape }}}, {{ review.author | latex_escape }} ({% if links %}\href{ {{ review.link }} }{ {{ review.published_at.date | as_date(fmt_year) }}}{% else %}{{ review.published_at.date | as_date(fmt_year) }}{% endif %})
+	{%- if not links %}
+	\weburlline{ {{- review.link -}} }
+	{%- endif %}
 		{% endfor %}
 \end{itemize}
 	{% endif %}

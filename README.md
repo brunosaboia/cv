@@ -28,7 +28,8 @@ Everything a pipeline needs is parametrized (via `make` variables or environment
 | `INPUT_JSON` | `$(DATA_DIR)/cv.json` | The CV data file |
 | `MARKET` | `default` | Target market code (`CH`, `BR`, …) selecting presentation rules |
 | `MARKET_RULES` | `config/market_rules.json` | Presentation rules; the in-repo file is the default, override if needed |
-| `TARGET` | `cv` or `cv-$(MARKET)` | Output base name — market-specific builds don't overwrite each other |
+| `LINKS` | `1` | `0` emits no clickable link annotations, keeping every URL as text (see below) |
+| `TARGET` | `cv`, plus `-$(MARKET)` and `-nolinks` when non-default | Output base name — no two builds overwrite each other |
 | `OUTDIR` | `out` | Output directory |
 | `STRICT` | `0` | `1` fails on unknown market or missing files instead of degrading gracefully |
 | `COMMIT_SHA` | `git rev-parse` | Stamp embedded in the PDF; CI can inject its own |
@@ -38,6 +39,15 @@ Everything a pipeline needs is parametrized (via `make` variables or environment
 ```sh
 make prod-build DATA_DIR=/path/to/cv-data MARKET=CH
 ```
+
+## Link-free builds
+Some employers' systems dislike PDF link annotations — the `<a href>` of a PDF — and some parsers trip over them. `LINKS=0` emits none, while keeping every address readable as text:
+
+```sh
+make build LINKS=0    # -> out/cv-nolinks.pdf
+```
+
+Several links are *labelled* (`GitHub`, `LinkedIn`, `Transcript of records`, and the award / certification / review dates), and dropping the annotation would take the address out of the document entirely, so `LINKS=0` prints it instead: as a URL pair in the header, and on a continuation line under the entry elsewhere. That makes a link-free build noticeably denser than the normal one. A `LINKS=1` build is unaffected — it renders exactly as it always has.
 
 ## Future
 I want to have various CVs that I can tailor to a specific need or market. For example, in Switzerland, CVs with photos are well-received—on the other hand, in Brazil, this is frowned upon. Adjusting a CV for a specific role —for example, by changing some wording or emphasizing some skill set—is also something that I want to look further. Also, exploring LLMs to rephrase some wording for some specific context might sound like a good idea.
