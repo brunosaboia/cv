@@ -9,6 +9,12 @@ from generate_cv import available_layouts, main, warn_or_fail
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
+# The sample's current role is open-ended, so parse_duration measures it against
+# today and the rendered string grows by a month every month. Match its shape,
+# not one month's arithmetic: what these assertions are about is the date line
+# staying next to the employer it belongs to, which is time-invariant.
+ONGOING_DATES = re.compile(r"June 2023 - Present \(\d+ years?(?:, \d+ months?)?\)")
+
 
 def run_main(tmp_path, monkeypatch, *extra_args, input_json=None):
 	output = tmp_path / "cv.tex"
@@ -127,7 +133,7 @@ class TestAtsLayoutIsParseable:
 
 	def test_dates_stay_next_to_their_employer(self, tex):
 		assert "Swiss National Bank, Zürich, CH" in tex
-		assert "June 2023 - Present (3 years, 2 months)" in tex
+		assert ONGOING_DATES.search(tex)
 
 	def test_labelled_contact_fields(self, tex):
 		assert "Email: " in tex
@@ -171,7 +177,7 @@ class TestTxtLayout:
 	def test_dates_stay_next_to_their_employer(self, txt):
 		lines = txt.splitlines()
 		company_line = next(i for i, l in enumerate(lines) if l.startswith("Swiss National Bank"))
-		assert "June 2023 - Present (3 years, 2 months)" in lines[company_line + 2]
+		assert ONGOING_DATES.search(lines[company_line + 2])
 
 	def test_labelled_contact_fields(self, txt):
 		assert "Email: john.doe@example.com" in txt
