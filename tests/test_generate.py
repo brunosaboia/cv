@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 
@@ -52,6 +53,23 @@ class TestMarkets:
 	def test_unknown_market_strict_fails(self, tmp_path, monkeypatch):
 		with pytest.raises(SystemExit):
 			run_main(tmp_path, monkeypatch, "--market", "XX", "--strict")
+
+
+class TestLanguagesSection:
+	"""Spoken languages are a top-level section, not a skills subsection."""
+
+	def test_rendered_from_the_top_level_key(self, tmp_path, monkeypatch):
+		tex = run_main(tmp_path, monkeypatch)
+		assert "English" in tex and "Native" in tex
+
+	def test_headers_order_places_it_after_skills(self):
+		headers = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))["headers"]
+		assert headers.index("languages") == headers.index("skills") + 1
+
+	def test_data_no_longer_nests_it_under_skills(self):
+		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
+		assert "languages" in data
+		assert "languages" not in data["skills"]
 
 
 class TestPhotoResolution:

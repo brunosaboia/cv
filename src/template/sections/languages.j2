@@ -1,0 +1,5 @@
+\begin{itemize}
+	{% for l in languages %}
+		\item {{ l.name | latex_escape }} — {{ l.level | latex_escape }}
+	{% endfor %}
+\end{itemize}

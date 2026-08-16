@@ -10,12 +10,6 @@
 				\item {{ t.name | latex_escape }} ({{ t.years }} yr{% if t.years != 1 %}s{% endif %})
 			{% endfor %}
 		\end{itemize}
-\textbf{Languages:}
-		\begin{itemize}
-			{% for l in skills.languages %}
-				\item {{ l.name }} — {{ l.level }}
-			{% endfor %}
-		\end{itemize}
 \textbf{Other skills:}
 		\begin{itemize}
 			{% for o in skills.other %}

@@ -8,6 +8,7 @@
 		"awards",
 		"certifications",
 		"skills",
+		"languages",
 		"hobbies"
 	],
 	"personal": {
@@ -209,20 +210,6 @@
 				"years": 1
 			}
 		],
-		"languages": [
-			{
-				"name": "English",
-				"level": "Native"
-			},
-			{
-				"name": "French",
-				"level": "Full professional proficiency"
-			},
-			{
-				"name": "German",
-				"level": "Professional working proficiency"
-			}
-		],
 		"other": [
 			"Operating Systems (Linux, Windows)",
 			"Git and CI/CD tools",
@@ -233,6 +220,20 @@
 			"Prompt Engineering"
 		]
 	},
+	"languages": [
+		{
+			"name": "English",
+			"level": "Native"
+		},
+		{
+			"name": "French",
+			"level": "Full professional proficiency"
+		},
+		{
+			"name": "German",
+			"level": "Professional working proficiency"
+		}
+	],
 	"hobbies": {
 		"sports": ["Trail Running", "Rock Climbing"],
 		"music": ["Violin", "Electronic Music Production"],
