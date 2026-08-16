@@ -43,6 +43,23 @@ class TestMarkets:
 		assert "includegraphics" not in tex
 		assert "Date of birth:" not in tex
 		assert "Address:" not in tex
+		assert "Nationality:" not in tex
+
+	def test_nationality_is_a_declared_rule_not_a_get_default(self, tmp_path, monkeypatch):
+		# Templates probe show_nationality with market.get(..., true), so an
+		# undeclared flag would silently mean "show it" and leak nationality
+		# into every market. It has to be spelled out in the rules file.
+		rules = json.loads((REPO_ROOT / "config" / "market_rules.json").read_text(encoding="utf-8"))
+		assert rules["default"]["show_nationality"] is False
+		assert rules["CH"]["show_nationality"] is True
+
+	def test_every_declared_rule_is_read_by_a_template(self):
+		# A flag nobody reads is dead configuration that reads as a feature.
+		templates = (REPO_ROOT / "src" / "template").rglob("*.j2")
+		rendered_by = "\n".join(t.read_text(encoding="utf-8") for t in templates)
+		rules = json.loads((REPO_ROOT / "config" / "market_rules.json").read_text(encoding="utf-8"))
+		declared = {flag for market in rules.values() for flag in market}
+		assert {flag for flag in declared if flag not in rendered_by} == set()
 
 	def test_ch_market_shows_everything(self, tmp_path, monkeypatch):
 		tex = run_main(tmp_path, monkeypatch, "--market", "CH")
@@ -51,6 +68,7 @@ class TestMarkets:
 		assert photo.is_absolute()
 		assert "Date of birth:" in tex
 		assert "Address:" in tex
+		assert "Nationality:" in tex
 
 	def test_br_market_hides_photo_dob_address(self, tmp_path, monkeypatch):
 		tex = run_main(tmp_path, monkeypatch, "--market", "BR")

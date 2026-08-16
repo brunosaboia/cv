@@ -41,6 +41,18 @@ Everything a pipeline needs is parametrized (via `make` variables or environment
 make prod-build DATA_DIR=/path/to/cv-data MARKET=CH
 ```
 
+## Market rules
+`config/market_rules.json` holds one object per market code, merged over `default`, so an entry only spells out what differs. Templates read each flag with `market.get("flag", true)` — a missing rules file or an unknown market degrades to showing everything rather than producing an empty CV — so the `default` entry states every flag explicitly to keep that fallback from leaking personal fields into a conservative build.
+
+| Flag | `default` | `CH`, `DE` | `BR`, `US`, `UK` | Controls |
+|------|:---------:|:----------:|:----------------:|----------|
+| `show_photo` | ✗ | ✓ | ✗ | `personal.photo` |
+| `show_dob` | ✗ | ✓ | ✗ | `personal.dob` |
+| `show_address` | ✗ | ✓ | ✗ | `personal.address` |
+| `show_nationality` | ✗ | ✓ | ✗ | `personal.nationality` |
+
+A layout can veto a market: `LAYOUT_RULE_OVERRIDES` in `src/generate_cv.py` is applied after the market rules, which is how `ats` and `txt` stay photo-free even when built for `CH`.
+
 ## Layouts
 `MARKET` decides *what* is shown; `LAYOUT` decides *how* it is rendered. The two are independent and compose, so `LAYOUT=ats MARKET=CH` is a thing you can build. Each layout is a self-contained directory under `src/template/` holding a root `cv.j2` and its own `sections/`.
 
