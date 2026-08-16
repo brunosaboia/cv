@@ -35,3 +35,9 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+      - id: make-build-txt
+        name: Build CV (TXT layout)
+        entry: make local-build LAYOUT=txt
+        language: system
+        pass_filenames: false
+        always_run: true
