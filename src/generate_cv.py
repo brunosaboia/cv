@@ -108,23 +108,51 @@ def available_layouts(template_dir: str) -> list[str]:
 		return []
 	return sorted(e for e in entries if os.path.isfile(os.path.join(template_dir, e, "cv.j2")))
 
-def parse_address(address: dict) -> str:
-	if not address:
-		return ""
-	parts = []
-	if "street" in address:
-		street = address["street"]
-		if "number" in address:
-			street += f" {address['number']}"
-		parts.append(street)
-	if "postal_code" in address and "city" in address:
-		parts.append(f"{address['postal_code']} {address['city']}")
-	elif "city" in address:
-		parts.append(address["city"])
-	if "country" in address:
-		parts.append(address["country"])
+# Address rendering is country-specific: the same fields assemble differently
+# in each market. "street + number" is "Aeschengraben 17" in Switzerland but
+# "17 Aeschengraben" in the US; the postal code precedes the city in CH but
+# trails the state in the US. The data carries an optional "format" key on the
+# address object selecting one of these patterns; absent, it falls back to the
+# historical Swiss ordering so existing data renders exactly as it always has.
+# Each format is a list of segments; a segment renders only the fields it has
+# -- a missing field collapses to nothing and dangling punctuation is trimmed,
+# so "Basel - SP" without a postal code stays "Basel - SP", but a missing
+# state renders "Basel" rather than "Basel -".
+ADDRESS_FORMATS = {
+	"ch": [
+		"{street} {number}",
+		"{postal_code} {city}",
+		"{country}",
+	],
+	"us": [
+		"{number} {street}",
+		"{city}",
+		"{state} {postal_code}",
+		"{country}",
+	],
+	"br": [
+		"{street} {number}",
+		"{city} - {state}",
+		"{postal_code}",
+		"{country}",
+	],
+}
 
-	return ", ".join(parts)
+def _render_address_segment(template: str, address: dict) -> str:
+	"""Fill a segment, dropping whatever a missing field leaves behind."""
+	fields = re.findall(r"\{(\w+)\}", template)
+	values = {field: address.get(field, "") for field in fields}
+	return re.sub(r"\s+", " ", template.format_map(values)).strip(" -")
+
+def parse_address(address) -> str:
+	if not isinstance(address, dict):
+		return ""
+	style = ADDRESS_FORMATS.get(str(address.get("format", "ch")).lower(), ADDRESS_FORMATS["ch"])
+	return ", ".join(
+		segment
+		for template in style
+		if (segment := _render_address_segment(template, address))
+	)
 
 def parse_nationality(nationality) -> str:
 	"""Accept a single nationality or a list of them, joined with ", ".
