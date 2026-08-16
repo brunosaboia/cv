@@ -1,0 +1,14 @@
+{% if publications %}
+{# The DOI gets its own line so it never has to break mid-identifier: an
+   extractor turns a wrapped URL into two fragments, and half a DOI resolves to
+   nothing. Printed in resolvable https://doi.org/ form rather than as bare
+   link text. #}
+\begin{itemize}
+{% for pub in publications %}
+	\item {{ pub.title | latex_escape }} ({{ pub.published_at.date | as_date(fmt_year) }})
+	{%- if pub.doi %}\\
+	DOI: \weburl{https://doi.org/{{ pub.doi }}}
+	{%- endif %}
+{% endfor %}
+\end{itemize}
+{% endif %}

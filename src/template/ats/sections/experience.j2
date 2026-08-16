@@ -1,0 +1,29 @@
+{# Employer, role and dates on consecutive lines, all left-aligned. The classic
+   layout pushes the dates right with \hfill, which puts them somewhere else
+   entirely in the content stream -- the single biggest reason a scanner mis-reads
+   tenure or drops it. #}
+{% for item in experience %}
+\begin{cventry}
+\textbf{ {{- item.company | latex_escape }}{% if item.location %}, {{ item.location | latex_escape }}{% endif -%} }
+
+{{ item.title | latex_escape }}
+
+{{ item.duration.start | as_date(fmt_month_year) }} - {{ item.duration.end | as_date(fmt_month_year) }} ({{ parse_duration(item.duration.start, item.duration.end) }})
+{% if item.url %}
+\weburl{ {{- item.url -}} }
+{% endif %}
+\end{cventry}
+{% if item.description %}
+{{ item.description | latex_escape }}
+{% endif %}
+{% if item.achievements %}
+\begin{itemize}
+{% for achievement in item.achievements %}
+	\item {{ achievement | latex_escape }}
+{% endfor %}
+\end{itemize}
+{% endif %}
+{% if item.technologies %}
+Technologies: {{ item.technologies | join(', ') | latex_escape }}
+{% endif %}
+{% endfor %}

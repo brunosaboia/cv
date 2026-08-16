@@ -5,16 +5,16 @@ from pathlib import Path
 
 import pytest
 
-from generate_cv import main, warn_or_fail
+from generate_cv import available_layouts, main, warn_or_fail
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
-def run_main(tmp_path, monkeypatch, *extra_args):
+def run_main(tmp_path, monkeypatch, *extra_args, input_json=None):
 	output = tmp_path / "cv.tex"
 	argv = [
 		"generate_cv.py",
-		"--input", str(REPO_ROOT / "data" / "cv.json"),
+		"--input", str(input_json or REPO_ROOT / "data" / "cv.json"),
 		"--output", str(output),
 		"--template-dir", str(REPO_ROOT / "src" / "template"),
 		"--market-rules", str(REPO_ROOT / "config" / "market_rules.json"),
@@ -62,12 +62,106 @@ class TestMarkets:
 			run_main(tmp_path, monkeypatch, "--market", "XX", "--strict")
 
 
+class TestLayouts:
+	def test_default_layout_is_classic(self, tmp_path, monkeypatch):
+		assert "\\documentclass[margin]{res}" in run_main(tmp_path, monkeypatch)
+
+	def test_ats_layout_selected_explicitly(self, tmp_path, monkeypatch):
+		tex = run_main(tmp_path, monkeypatch, "--layout", "ats")
+		assert "\\documentclass[11pt,a4paper]{article}" in tex
+
+	def test_unknown_layout_always_fails_and_lists_the_real_ones(self, tmp_path, monkeypatch):
+		# Fatal with or without --strict: there is no template to fall back to.
+		with pytest.raises(SystemExit) as exc_info:
+			run_main(tmp_path, monkeypatch, "--layout", "nope")
+		message = str(exc_info.value)
+		assert "Unknown layout 'nope'" in message
+		assert "ats, classic" in message
+
+	def test_available_layouts_lists_directories_holding_a_root_template(self):
+		assert available_layouts(str(REPO_ROOT / "src" / "template")) == ["ats", "classic"]
+
+	def test_available_layouts_of_a_missing_directory_is_empty(self, tmp_path):
+		assert available_layouts(str(tmp_path / "nowhere")) == []
+
+
+class TestAtsLayoutIsParseable:
+	"""The properties an ATS layout exists for: everything a résumé scanner
+	reads back out of the PDF text layer has to survive extraction."""
+
+	@pytest.fixture
+	def tex(self, tmp_path, monkeypatch):
+		return run_main(tmp_path, monkeypatch, "--layout", "ats")
+
+	def test_no_second_column(self, tex):
+		# \hfill is what pushes dates away from their heading in the content
+		# stream, so a scanner reads them as unrelated fragments.
+		assert "\\hfill" not in strip_latex_comments(tex)
+
+	def test_hyphenation_is_disabled(self, tex):
+		# Extractors do not rejoin a word split across lines: "Kuber-\nnetes"
+		# stops matching the keyword "Kubernetes".
+		assert "\\hyphenpenalty=10000" in tex
+
+	def test_no_page_furniture(self, tex):
+		# A page number lands in the text stream between two entries.
+		assert "\\pagestyle{empty}" in tex
+
+	def test_headings_use_conventional_section_names(self, tex):
+		for heading in ("Professional Summary", "Work Experience", "Education", "Skills", "Languages"):
+			assert f"\\cvsection{{{heading}}}" in tex
+
+	def test_unmapped_heading_falls_back_to_the_data_key(self, tmp_path, monkeypatch):
+		assert "\\cvsection{Publications}" in run_main(tmp_path, monkeypatch, "--layout", "ats")
+
+	def test_contact_urls_are_their_own_link_text(self, tex):
+		# A link labelled "LinkedIn" keeps its address in the annotation layer,
+		# which text extraction never sees.
+		assert "LinkedIn: \\weburl{https://linkedin.com/in/johndoe}" in tex
+		assert "GitHub: \\weburl{https://github.com/johndoe}" in tex
+
+	def test_dates_stay_next_to_their_employer(self, tex):
+		assert "Swiss National Bank, Zürich, CH" in tex
+		assert "June 2023 - Present (3 years, 2 months)" in tex
+
+	def test_labelled_contact_fields(self, tex):
+		assert "Email: " in tex
+		assert "Phone: " in tex
+
+	def test_contact_block_survives_missing_optional_fields(self, tmp_path, monkeypatch):
+		# The contact lines are one \\-separated paragraph, so every optional
+		# field has to *lead* with its \\. A field appended with a trailing one
+		# instead would leave a dangling \\ before the blank line and pdflatex
+		# would stop with "There's no line here to end".
+		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
+		minimal = {
+			"headers": ["summary"],
+			"summary": data["summary"],
+			"personal": {k: data["personal"][k] for k in ("name", "email", "phone", "cv_url")},
+		}
+		minimal_json = tmp_path / "minimal.json"
+		minimal_json.write_text(json.dumps(minimal), encoding="utf-8")
+
+		tex = run_main(tmp_path, monkeypatch, "--layout", "ats", "--market", "CH", input_json=minimal_json)
+		assert "LinkedIn" not in tex
+		assert re.search(r"\\\\\s*\n\s*\n", tex) is None
+
+
 class TestLanguagesSection:
 	"""Spoken languages are a top-level section, not a skills subsection."""
 
-	def test_rendered_from_the_top_level_key(self, tmp_path, monkeypatch):
-		tex = run_main(tmp_path, monkeypatch)
+	@pytest.mark.parametrize("layout", ["classic", "ats"])
+	def test_rendered_from_the_top_level_key(self, tmp_path, monkeypatch, layout):
+		tex = run_main(tmp_path, monkeypatch, "--layout", layout)
 		assert "English" in tex and "Native" in tex
+
+	def test_ats_heading_is_the_conventional_name(self, tmp_path, monkeypatch):
+		tex = run_main(tmp_path, monkeypatch, "--layout", "ats")
+		assert "\\cvsection{Languages}" in tex
+		# The disambiguating label is gone with the subsection it belonged to,
+		# but the programming one stays labelled under Skills.
+		assert "Spoken Languages" not in tex
+		assert "\\textbf{Programming Languages:}" in tex
 
 	def test_headers_order_places_it_after_skills(self):
 		headers = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))["headers"]
@@ -81,24 +175,33 @@ class TestLanguagesSection:
 
 class TestLinks:
 	def test_links_are_on_by_default(self, tmp_path, monkeypatch):
-		tex = run_main(tmp_path, monkeypatch)
+		tex = run_main(tmp_path, monkeypatch, "--layout", "ats")
+		assert "\\newcommand{\\weburl}[1]{\\href{#1}{\\nolinkurl{#1}}}" in tex
 		assert "\\href{mailto:john.doe@example.com}" in tex
 
 	def test_no_links_defines_weburl_without_a_link(self, tmp_path, monkeypatch):
-		tex = run_main(tmp_path, monkeypatch, "--no-links")
-		assert "\\newcommand{\\weburl}[1]{{\\urlstyle{same}\\nolinkurl{#1}}}" in tex
+		tex = run_main(tmp_path, monkeypatch, "--layout", "ats", "--no-links")
+		assert "\\newcommand{\\weburl}[1]{\\nolinkurl{#1}}" in tex
 
-	def test_no_links_leaves_no_href(self, tmp_path, monkeypatch):
+	def test_no_links_keeps_the_address_as_text(self, tmp_path, monkeypatch):
+		# The point of the option: drop the annotation, never the URL.
+		tex = run_main(tmp_path, monkeypatch, "--layout", "ats", "--no-links")
+		assert "LinkedIn: \\weburl{https://linkedin.com/in/johndoe}" in tex
+		assert "GitHub: \\weburl{https://github.com/johndoe}" in tex
+		assert "Email: john.doe@example.com" in tex
+
+	@pytest.mark.parametrize("layout", ["classic", "ats"])
+	def test_no_links_leaves_no_href_in_any_layout(self, tmp_path, monkeypatch, layout):
 		# \href is the only thing that emits a PDF link annotation, so one
 		# unguarded call anywhere in a section template silently defeats the
 		# whole option -- which is exactly how experience.j2 was first missed.
-		tex = run_main(tmp_path, monkeypatch, "--market", "CH", "--no-links")
+		tex = run_main(tmp_path, monkeypatch, "--layout", layout, "--market", "CH", "--no-links")
 		assert "\\href" not in strip_latex_comments(tex)
 
-	def test_no_links_promotes_labelled_urls_to_text(self, tmp_path, monkeypatch):
+	def test_classic_no_links_promotes_labelled_urls_to_text(self, tmp_path, monkeypatch):
 		# These four were reachable only through their link text, so dropping
 		# the annotation has to surface the address instead of losing it.
-		tex = run_main(tmp_path, monkeypatch, "--no-links")
+		tex = run_main(tmp_path, monkeypatch, "--layout", "classic", "--no-links")
 		for url in (
 			"https://github.com/johndoe",
 			"https://linkedin.com/in/johndoe",
@@ -108,11 +211,30 @@ class TestLinks:
 			# \weburl inline, \weburlline where it gets a ragged line of its own.
 			assert re.search(rf"\\weburl(?:line)?\{{{re.escape(url)}\}}", tex)
 
-	def test_keeps_its_labels_when_linked(self, tmp_path, monkeypatch):
-		tex = run_main(tmp_path, monkeypatch)
+	def test_classic_keeps_its_labels_when_linked(self, tmp_path, monkeypatch):
+		tex = run_main(tmp_path, monkeypatch, "--layout", "classic")
 		assert "{GitHub}" in tex
 		assert "{Transcript of records}" in tex
 		assert "\\weburl" not in tex
+
+
+class TestLayoutRuleOverrides:
+	def test_ats_drops_the_photo_even_for_a_photo_market(self, tmp_path, monkeypatch):
+		tex = run_main(tmp_path, monkeypatch, "--layout", "ats", "--market", "CH")
+		assert "includegraphics" not in tex
+		# The rest of the market's rules still apply.
+		assert "Address: " in tex
+		assert "Date of birth: " in tex
+
+	def test_strict_does_not_demand_a_photo_the_layout_never_emits(self, tmp_path, monkeypatch, capsys):
+		empty_data_dir = tmp_path / "assets"
+		empty_data_dir.mkdir()
+		run_main(
+			tmp_path, monkeypatch,
+			"--layout", "ats", "--market", "CH",
+			"--data-dir", str(empty_data_dir), "--strict",
+		)
+		assert "Photo not found" not in capsys.readouterr().out
 
 
 class TestPhotoResolution:

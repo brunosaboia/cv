@@ -41,8 +41,21 @@ jobs:
     - name: Build sample CV (BR market, strict)
       run: make build MARKET=BR STRICT=1
 
+    - name: Build sample CV (ATS layout, strict)
+      run: make build LAYOUT=ats STRICT=1
+
+    # The two axes are independent, so build a combination as well: the ATS
+    # layout has to drop the photo a photo market asks for without --strict
+    # tripping over the file it never reads.
+    - name: Build sample CV (ATS layout, CH market, strict)
+      run: make build LAYOUT=ats MARKET=CH STRICT=1
+
+    # Both layouts take a different route through their templates with links
+    # off, so build both rather than trusting one to cover the other.
     - name: Build sample CV (no link annotations, strict)
-      run: make build LINKS=0 STRICT=1
+      run: |
+        make build LINKS=0 STRICT=1
+        make build LAYOUT=ats LINKS=0 STRICT=1
 
     - name: Upload sample PDFs
       uses: actions/upload-artifact@v7

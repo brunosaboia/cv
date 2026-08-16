@@ -1,0 +1,3 @@
+{% for category, items in hobbies.items() %}
+\textbf{ {{- category | replace("_", " ") | title -}} :} {{ items | join(', ') | latex_escape }}
+{% endfor %}

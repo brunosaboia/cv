@@ -1,0 +1,5 @@
+{# One comma-separated line, the shape language extractors are built around.
+   No "Spoken" qualifier needed now that it is a section of its own: "Languages"
+   is the heading parsers match, and the programming ones stay labelled under
+   Skills. #}
+{% for l in languages %}{{ l.name | latex_escape }} ({{ l.level | latex_escape }}){% if not loop.last %}, {% endif %}{% endfor %}

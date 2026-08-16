@@ -1,0 +1,8 @@
+\begin{itemize}
+{% for cert in certifications %}
+	\item {{ cert.title | latex_escape }} ({{ cert.attained_at.date | as_date(fmt_year) }})
+	{%- if cert.link %}\\
+	\weburl{ {{- cert.link -}} }
+	{%- endif %}
+{% endfor %}
+\end{itemize}

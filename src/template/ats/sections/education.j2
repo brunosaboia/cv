@@ -1,0 +1,15 @@
+{% for edu in education %}
+\begin{cventry}
+\textbf{ {{- edu.institution | latex_escape }}{% if edu.location %}, {{ edu.location | latex_escape }}{% endif -%} }
+
+{{ edu.degree | latex_escape }}{% if edu.field %}, {{ edu.field | latex_escape }}{% endif %}
+
+{{ edu.duration.start | as_date(fmt_month_year) }} - {{ edu.duration.end | as_date(fmt_month_year) }}
+{% if edu.url %}
+\weburl{ {{- edu.url -}} }
+{% endif %}
+{% if edu.transcript %}
+Transcript of records: \weburl{ {{- edu.transcript -}} }
+{% endif %}
+\end{cventry}
+{% endfor %}

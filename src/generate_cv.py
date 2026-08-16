@@ -6,6 +6,22 @@ import sys
 from datetime import datetime, timezone
 from jinja2 import Environment, FileSystemLoader
 
+# Each layout is a self-contained directory under --template-dir holding a root
+# cv.j2 plus its own sections/: same data, a different rendering contract.
+# "classic" is the typographic one; "ats" trades density for a linear,
+# single-column text layer that résumé parsers can read back correctly.
+DEFAULT_LAYOUT = "classic"
+
+# Presentation rules a layout overrides regardless of market, because the
+# layout deliberately cannot express them. Applied last, so they win.
+LAYOUT_RULE_OVERRIDES = {
+	# A photo carries nothing a parser can read, and the floating box it needs
+	# is exactly the overlapping geometry that derails page segmentation.
+	# Forcing it off here also keeps --strict from demanding a photo file for a
+	# layout that would never emit it.
+	"ats": {"show_photo": False},
+}
+
 latex_format_map = {
 	"YYYY": "%Y",
 	"MMMM yyyy": "%B %Y",
@@ -80,6 +96,14 @@ def latex_escape(text: str) -> str:
 	pattern = re.compile('|'.join(re.escape(k) for k in replacements))
 	return pattern.sub(lambda m: replacements[m.group()], text)
 
+def available_layouts(template_dir: str) -> list[str]:
+	"""Subdirectories of template_dir that carry a root cv.j2, i.e. are layouts."""
+	try:
+		entries = os.listdir(template_dir)
+	except OSError:
+		return []
+	return sorted(e for e in entries if os.path.isfile(os.path.join(template_dir, e, "cv.j2")))
+
 def parse_address(address: dict) -> str:
 	if not address:
 		return ""
@@ -102,7 +126,8 @@ def main():
 	parser = argparse.ArgumentParser(description="Generate CV from JSON using Jinja2 + LaTeX")
 	parser.add_argument("--input", "-i", default="data/cv.json", help="Path to the input JSON file")
 	parser.add_argument("--output", "-o", default="out/cv.tex", help="Path to the output LaTeX file")
-	parser.add_argument("--template-dir", "-t", default="src/template", help="Path to the Jinja template directory")
+	parser.add_argument("--template-dir", "-t", default="src/template", help="Path to the Jinja template directory holding the layouts")
+	parser.add_argument("--layout", "-l", default=DEFAULT_LAYOUT, help="Layout to render: a directory under --template-dir (e.g. classic, ats)")
 	parser.add_argument("--commit-sha", "-c", default=None, help="The hash of the commit that generated the CV")
 	parser.add_argument("--market", "-m", default="default", help="Target market code (e.g. CH, BR) selecting presentation rules")
 	parser.add_argument("--market-rules", default="config/market_rules.json", help="Path to the market rules JSON file")
@@ -111,6 +136,13 @@ def main():
 		help="Emit clickable PDF link annotations. --no-links keeps the URL as text but drops the annotation, for employers whose systems object to them")
 	parser.add_argument("--strict", action="store_true", help="Fail on unknown market, missing rules file, or missing assets instead of warning")
 	args = parser.parse_args()
+
+	# An unknown layout is fatal with or without --strict: unlike a market, there
+	# is no sane fallback — without a root template there is nothing to render.
+	layout_dir = os.path.join(args.template_dir, args.layout)
+	if not os.path.isfile(os.path.join(layout_dir, "cv.j2")):
+		available = ", ".join(available_layouts(args.template_dir)) or "none"
+		sys.exit(f"❌ Unknown layout '{args.layout}' in {args.template_dir}; available: {available}")
 
 	# Load JSON data
 	with open(args.input, encoding="utf-8") as f:
@@ -132,6 +164,10 @@ def main():
 	except FileNotFoundError:
 		warn_or_fail(f"Market rules file not found: {args.market_rules}", args.strict, "; showing all fields")
 
+	# Applied after the market so a layout that cannot render a field wins over
+	# a market that asks for it (e.g. CH wants a photo, the ATS layout has none).
+	market.update(LAYOUT_RULE_OVERRIDES.get(args.layout, {}))
+
 	# Resolve the photo against the data directory so the data repo stays
 	# self-contained wherever the pipeline checks it out, and fail fast here
 	# rather than deep inside pdflatex.
@@ -145,9 +181,10 @@ def main():
 			warn_or_fail(f"Photo not found: {photo_path}", args.strict, "; omitting it")
 			personal.pop("photo", None)
 
-	# Setup Jinja environment
+	# Rooted at the layout directory so every layout refers to its own
+	# "cv.j2" and "sections/*.j2" by the same names.
 	env = Environment(
-		loader=FileSystemLoader(args.template_dir),
+		loader=FileSystemLoader(layout_dir),
 		autoescape=False
 	)
 
@@ -157,6 +194,7 @@ def main():
 	env.globals["parse_duration"] = parse_duration
 	env.globals["commit_sha"] = args.commit_sha
 	env.globals["market"] = market
+	env.globals["layout"] = args.layout
 	env.globals["links"] = args.links
 	env.globals["parse_address"] = parse_address
 
@@ -168,7 +206,7 @@ def main():
 	with open(args.output, "w", encoding="utf-8") as f:
 		f.write(rendered)
 
-	print(f"✅ CV generated at: {args.output}")
+	print(f"✅ CV generated at: {args.output} (layout: {args.layout}, market: {args.market})")
 
 if __name__ == "__main__":
 	main()

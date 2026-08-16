@@ -1,0 +1,14 @@
+{% set labels = {"bachelor_thesis": "Bachelor theses", "papers": "Papers"} %}
+{% for category, items in reviews.items() %}
+{% if items %}
+\textbf{ {{- labels.get(category, category | replace("_", " ") | title) -}} :}
+\begin{itemize}
+{% for review in items %}
+	\item {{ review.title | latex_escape }}, {{ review.author | latex_escape }} ({{ review.published_at.date | as_date(fmt_year) }})
+	{%- if review.link %}\\
+	\weburl{ {{- review.link -}} }
+	{%- endif %}
+{% endfor %}
+\end{itemize}
+{% endif %}
+{% endfor %}

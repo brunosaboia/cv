@@ -1,0 +1,181 @@
+% ATS / AI-parseable layout.
+%
+% This document optimises for one thing: what a résumé parser reads back out of
+% the PDF text layer. Everything below follows from that.
+%
+%  * plain "article", never res.cls -- res puts section titles in the left
+%    margin, so an extractor interleaves the heading with the first body line
+%    ("Summary   AI/ML engineer with...") and loses the section boundary;
+%  * one column, strict top-to-bottom order, no \hfill and no tabulars -- a
+%    right-aligned date is emitted far from its heading in the content stream,
+%    which is how "June 2023 -- Present" gets detached from its employer;
+%  * no hyphenation -- extractors do not rejoin a word split across lines, so
+%    "Kuber-\nnetes" stops matching the keyword "Kubernetes";
+%  * URLs printed as their own text, never behind a label -- link targets live
+%    in the annotation layer, which text extraction never sees.
+\documentclass[11pt,a4paper]{article}
+
+% T1 + Latin Modern: accented characters are real glyphs, so extraction yields
+% "Zürich" rather than "Z¨urich". cmap adds ToUnicode CMaps to those Type 1
+% fonts, which is what lets extractors built on PDFBox/PDF.js (most parsing
+% vendors) map glyphs back to Unicode instead of guessing.
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{cmap}
+
+\usepackage[a4paper,top=1.8cm,bottom=1.8cm,left=2cm,right=2cm]{geometry}
+\usepackage{hyperref}
+
+\hypersetup{
+	pdftitle={ {{- personal.name | latex_escape }} -- Curriculum Vitae},
+	pdfauthor={ {{- personal.name | latex_escape -}} },
+	pdfsubject={Curriculum Vitae},
+	{%- if skills %}
+	% Some parsers read the keyword metadata before touching the page content.
+	% The tags around this block trim aggressively: a whitespace-only line is a
+	% \par to TeX, which would tear this keyval argument in half.
+	pdfkeywords={ {{- ((skills.programming | default([]) | map(attribute='name') | list)
+	                 + (skills.technologies | default([]) | map(attribute='name') | list))
+	                 | join(', ') | latex_escape -}} },
+	{%- endif %}
+	pdflang={en},
+	hidelinks,
+}
+
+{# Literal LaTeX from here to \endraw: macro bodies use {% and {#1}, which would
+   otherwise be read as Jinja tag and comment openers. #}
+{% raw %}
+% Ragged right, no hyphenation, no justification: even inter-word spacing keeps
+% extractors from inserting phantom spaces mid-word, and unbroken words keep
+% keyword matching intact. \emergencystretch absorbs what justification used to.
+\raggedright
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\emergencystretch=3em
+\hbadness=10000
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55\baselineskip}
+\widowpenalty=10000
+\clubpenalty=10000
+\raggedbottom
+
+% No page numbers: article's default footer drops a bare "1" into the text
+% stream between two entries, and page furniture is noise to a parser.
+\pagestyle{empty}
+
+% Shallow, tight lists. A deep left gutter reads as a second column to the
+% layout analysis some parsers run before extracting text.
+\setlength{\leftmargini}{1.4em}
+\renewcommand{\labelitemi}{\textbullet}
+\makeatletter
+\def\@listI{\leftmargin\leftmargini \topsep 2pt \parsep 0pt \parskip 0pt \itemsep 2pt}
+\let\@listi\@listI
+\makeatother
+
+% A heading is plain full-width text on its own line, so it extracts as a line
+% of its own and parsers can segment on it. The rule is decoration only.
+\newcommand{\cvsection}[1]{%
+	\par\addvspace{1.1\baselineskip}%
+	{\large\bfseries #1}\par
+	\nobreak\vspace{1pt}%
+	\nobreak\hrule height 0.6pt\relax
+	\nobreak\vspace{0.35\baselineskip}%
+	\nobreak
+}
+
+% The URL is its own link text, so it survives into the text layer. \nolinkurl
+% keeps it in the body font and lets it break at / if it ever has to. \weburl
+% itself is defined just after this block, with or without a link behind it.
+\urlstyle{same}
+
+% The identifying lines of one entry -- employer, role, dates. Each is its own
+% paragraph, so an optional line can be dropped without leaving a dangling \\,
+% but \parskip is suppressed so they stay on consecutive lines and a parser
+% reads them as one block instead of three unrelated fragments.
+%
+% The minipage makes that block unbreakable. A page break landing between the
+% employer and its dates is the worst case for a scanner: the orphaned date
+% line reads as belonging to whatever precedes it on the next page.
+\newenvironment{cventry}%
+	{\par\addvspace{0.4\baselineskip}\begin{minipage}[t]{\linewidth}\setlength{\parskip}{0pt}}%
+	{\end{minipage}\par}
+{% endraw %}
+
+{# Some employers' systems object to link annotations outright, and some parsers
+   trip over them. --no-links drops every annotation while leaving the address
+   readable: in this layout the link text was always the URL itself, so the text
+   layer is byte-for-byte the same either way. Only the chosen definition is
+   emitted, so \href never appears in a --no-links document at all. #}
+{% if links %}
+{% raw %}\newcommand{\weburl}[1]{\href{#1}{\nolinkurl{#1}}}{% endraw %}
+{% else %}
+{% raw %}\newcommand{\weburl}[1]{\nolinkurl{#1}}{% endraw %}
+{% endif %}
+
+{% set fmt_year = "%Y" %}
+{% set fmt_month_year = "%B %Y" %}
+{% set fmt_full_date = "%d.%m.%Y" %}
+
+{# Parsers segment a CV by matching section headings against a vocabulary of
+   conventional names, so the rendered string matters more than our JSON key.
+   Anything unmapped falls back to the key, title-cased, as in the classic
+   layout. #}
+{% set ats_headings = {
+	"summary": "Professional Summary",
+	"experience": "Work Experience",
+	"education": "Education",
+	"publications": "Publications",
+	"reviews": "Peer Reviews",
+	"awards": "Awards and Honours",
+	"certifications": "Certifications",
+	"skills": "Skills",
+	"languages": "Languages",
+	"hobbies": "Interests"
+} %}
+
+\begin{document}
+
+% Contact details are labelled, one per line, in the body text -- not in a page
+% header (parsers routinely discard header/footer regions) and not packed onto
+% one line with separators that a parser has to guess how to split.
+{\LARGE\bfseries {{ personal.name | latex_escape }}}\par
+\nopagebreak
+Email: {% if links %}\href{mailto:{{ personal.email }}}{ {{- personal.email | latex_escape -}} }{% else %}{{ personal.email | latex_escape }}{% endif %}\\
+Phone: {{ personal.phone | latex_escape }}
+{%- if personal.address and market.get("show_address", true) %}\\
+Address: {{ parse_address(personal.address) | latex_escape }}
+{%- endif %}
+{%- if personal.nationality and market.get("show_nationality", true) %}\\
+Nationality: {{ personal.nationality | latex_escape }}
+{%- endif %}
+{%- if personal.dob and market.get("show_dob", true) %}\\
+Date of birth: {{ personal.dob | as_date(fmt_full_date) }}
+{%- endif %}
+{%- if personal.linkedin %}\\
+LinkedIn: \weburl{ {{- personal.linkedin -}} }
+{%- endif %}
+{%- if personal.github %}\\
+GitHub: \weburl{ {{- personal.github -}} }
+{%- endif %}
+
+{% for section in headers %}
+	{% if section %}
+\cvsection{ {{- ats_headings.get(section, section | title) -}} }
+		{% include "sections/" ~ section ~ ".j2" with context %}
+	{% endif %}
+{% endfor %}
+
+% End matter stays in the normal text flow rather than being pushed to the foot
+% of the page, so it is never mistaken for a page footer and dropped.
+\par\addvspace{1.1\baselineskip}
+\hrule height 0.4pt\relax
+\vspace{0.35\baselineskip}
+{\footnotesize
+Last updated at {{ now.strftime('%Y-%m-%d') }}. The most recent copy can be found at \weburl{ {{- personal.cv_url -}} }.
+{%- if commit_sha %}\\
+Generated with \weburl{https://github.com/brunosaboia/cv}, commit {{ commit_sha | latex_escape }}.
+{%- endif %}
+}
+
+\end{document}

@@ -1,0 +1,8 @@
+\begin{itemize}
+{% for award in awards %}
+	\item {{ award.title | latex_escape }}{% if award.place %}, {{ award.place | latex_escape }}{% endif %} ({{ award.attained_at.date | as_date(fmt_month_year) }})
+	{%- if award.link %}\\
+	\weburl{ {{- award.link -}} }
+	{%- endif %}
+{% endfor %}
+\end{itemize}
