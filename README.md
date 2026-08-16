@@ -94,7 +94,7 @@ Even the `ats` layout only wins the *text layer a scanner extracts from the PDF*
 Adding a layout means adding a directory: `src/template/<name>/cv.j2` plus `sections/*.j2`, and it shows up in `make build LAYOUT=<name>` with no code change. Presentation rules a layout cannot express are declared in `LAYOUT_RULE_OVERRIDES` in `src/generate_cv.py`, and win over the market.
 
 ## Future
-I want to have various CVs that I can tailor to a specific need or market. For example, in Switzerland, CVs with photos are well-received—on the other hand, in Brazil, this is frowned upon. Adjusting a CV for a specific role —for example, by changing some wording or emphasizing some skill set—is also something that I want to look further. Also, exploring LLMs to rephrase some wording for some specific context might sound like a good idea.
+Adjusting a CV for a specific role — for example, by changing some wording or emphasizing some skill set — is something that I want to look further. Also, exploring LLMs to rephrase some wording for some specific context might sound like a good idea.
 
 ## License
 This project is licensed under the [MIT License](https://license.md/licenses/mit-license/).
