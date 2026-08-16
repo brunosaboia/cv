@@ -96,5 +96,8 @@ Adding a layout means adding a directory: `src/template/<name>/cv.j2` plus `sect
 ## Future
 Adjusting a CV for a specific role — for example, by changing some wording or emphasizing some skill set — is something that I want to look further. Also, exploring LLMs to rephrase some wording for some specific context might sound like a good idea.
 
+## Contributing
+Commits to this repo and to `cv-data` always follow conventional commits: a lowercase `type:` prefix (`feat:`, `fix:`, `chore:`, `style:`, `ci:`, `doc:` — `doc:`, not `docs:`), no trailing period, and one logical change per commit.
+
 ## License
 This project is licensed under the [MIT License](https://license.md/licenses/mit-license/).
