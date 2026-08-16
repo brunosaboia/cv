@@ -80,6 +80,24 @@ def latex_escape(text: str) -> str:
 	pattern = re.compile('|'.join(re.escape(k) for k in replacements))
 	return pattern.sub(lambda m: replacements[m.group()], text)
 
+def parse_address(address: dict) -> str:
+	if not address:
+		return ""
+	parts = []
+	if "street" in address:
+		street = address["street"]
+		if "number" in address:
+			street += f" {address['number']}"
+		parts.append(street)
+	if "postal_code" in address and "city" in address:
+		parts.append(f"{address['postal_code']} {address['city']}")
+	elif "city" in address:
+		parts.append(address["city"])
+	if "country" in address:
+		parts.append(address["country"])
+
+	return ", ".join(parts)
+
 def main():
 	parser = argparse.ArgumentParser(description="Generate CV from JSON using Jinja2 + LaTeX")
 	parser.add_argument("--input", "-i", default="data/cv.json", help="Path to the input JSON file")
@@ -137,6 +155,7 @@ def main():
 	env.globals["parse_duration"] = parse_duration
 	env.globals["commit_sha"] = args.commit_sha
 	env.globals["market"] = market
+	env.globals["parse_address"] = parse_address
 
 	# Render template
 	template = env.get_template("cv.j2")

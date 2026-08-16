@@ -32,7 +32,10 @@
 	\moveleft.5\hoffset\centerline{ Date of birth: {{ personal.dob | as_date(fmt_full_date) }}}
 	{% endif %}
 	{% if personal.address and market.get("show_address", true) %}
-	\moveleft.5\hoffset\centerline{ Address: {{ personal.address }}}
+	\moveleft.5\hoffset\centerline{ Address: {{ parse_address(personal.address) }}}
+	{% endif %}
+	{% if personal.nationality and market.get("show_nationality", true) %}
+	\moveleft.5\hoffset\centerline{ Nationality: {{ personal.nationality }}}
 	{% endif %}
 	\moveleft.5\hoffset\centerline{e-mail: \href{mailto:{{ personal.email }}}{ {{ personal.email }}} -- Tel: {{ personal.phone }}}
 	\moveleft.5\hoffset\centerline{\sl{\href{ {{ personal.github }} }{GitHub} -- \href{ {{ personal.linkedin }} }{LinkedIn}}}

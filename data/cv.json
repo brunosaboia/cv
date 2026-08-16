@@ -12,7 +12,13 @@
 	],
 	"personal": {
 		"name": "John Doe",
-		"address": "123 Innovation Street, 1000 Zürich, CH",
+		"address": {
+			"street": "Innovation Street",
+			"number": "123",
+			"postal_code": "1000",
+			"city": "Zürich",
+			"country": "CH"
+		},
 		"email": "john.doe@example.com",
 		"phone": "+41 76 123 4567",
 		"github": "https://github.com/johndoe",
