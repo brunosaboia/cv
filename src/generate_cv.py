@@ -126,6 +126,18 @@ def parse_address(address: dict) -> str:
 
 	return ", ".join(parts)
 
+def parse_nationality(nationality) -> str:
+	"""Accept a single nationality or a list of them, joined with ", ".
+
+	The data contract historically carried one string; a person can hold
+	several nationalities, and the data may carry them as a list. Normalizing
+	here keeps every template reading a plain value, and a list joins in the
+	order the person listed it, so the rendered line reads naturally.
+	"""
+	if isinstance(nationality, list):
+		return ", ".join(str(n) for n in nationality)
+	return nationality or ""
+
 def main():
 	parser = argparse.ArgumentParser(description="Generate CV from JSON using Jinja2 + LaTeX")
 	parser.add_argument("--input", "-i", default="data/cv.json", help="Path to the input JSON file")
@@ -151,6 +163,13 @@ def main():
 	# Load JSON data
 	with open(args.input, encoding="utf-8") as f:
 		data = json.load(f)
+
+	# Nationality is a single string in the data contract, but a person can
+	# hold several: the data may carry a list, joined in the order given.
+	# Normalize once here so all three layouts keep reading a plain value and
+	# their truthiness guards still agree on both shapes.
+	if isinstance(data.get("personal"), dict):
+		data["personal"]["nationality"] = parse_nationality(data["personal"].get("nationality"))
 
 	# Absolute so the rendered .tex is independent of pdflatex's working directory.
 	data_dir = os.path.abspath(args.data_dir) if args.data_dir else os.path.dirname(os.path.abspath(args.input))

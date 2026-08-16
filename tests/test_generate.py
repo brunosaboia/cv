@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from generate_cv import available_layouts, main, warn_or_fail
+from generate_cv import available_layouts, main, parse_nationality, warn_or_fail
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -84,6 +84,35 @@ class TestMarkets:
 	def test_unknown_market_strict_fails(self, tmp_path, monkeypatch):
 		with pytest.raises(SystemExit):
 			run_main(tmp_path, monkeypatch, "--market", "XX", "--strict")
+
+
+class TestNationalities:
+	"""personal.nationality accepts a single string or a list of them, so a
+	person with several nationalities can list them all in one field."""
+
+	def test_single_string_passes_through(self):
+		assert parse_nationality("Swiss") == "Swiss"
+
+	def test_list_joins_in_given_order(self):
+		assert parse_nationality(["Swiss", "Italian"]) == "Swiss, Italian"
+
+	def test_blank_forms_render_nothing(self):
+		assert parse_nationality("") == ""
+		assert parse_nationality(None) == ""
+		assert parse_nationality([]) == ""
+
+	def test_list_members_are_stringified(self):
+		# The schema says strings; a stray non-string in the list must not
+		# crash the build.
+		assert parse_nationality([42]) == "42"
+
+	def test_ch_market_renders_multiple_nationalities(self, tmp_path, monkeypatch):
+		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
+		data["personal"]["nationality"] = ["Swiss", "Italian"]
+		specials = tmp_path / "specials.json"
+		specials.write_text(json.dumps(data), encoding="utf-8")
+		tex = run_main(tmp_path, monkeypatch, "--market", "CH", input_json=specials)
+		assert "Nationality: Swiss, Italian" in tex
 
 
 class TestLayouts:
