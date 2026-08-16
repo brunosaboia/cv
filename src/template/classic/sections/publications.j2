@@ -2,7 +2,9 @@
 \begin{itemize}
 	{% for pub in publications %}
 		{# \nolinkurl makes the DOI breakable at dots/slashes, preventing margin overflow #}
-		\item {\sl {{ pub.title | latex_escape }} } ({{ pub.published_at.date | as_date(fmt_year) }}), DOI: {% if links %}\href{https://doi.org/{{ pub.doi | latex_escape }}}{\nolinkurl{ {{- pub.doi -}} }}{% else %}\nolinkurl{ {{- pub.doi -}} }{% endif %}
+		{# The DOI is a link target here, so it must NOT be latex_escaped -- an
+		   escape would corrupt the address. \nolinkurl handles the display side. #}
+		\item {\sl {{ pub.title | latex_escape }} } ({{ pub.published_at.date | as_date(fmt_year) }}), DOI: {% if links %}\href{https://doi.org/{{ pub.doi }}}{\nolinkurl{ {{- pub.doi -}} }}{% else %}\nolinkurl{ {{- pub.doi -}} }{% endif %}
 	{% endfor %}
 \end{itemize}
 {% endif %}

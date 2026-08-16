@@ -1,10 +1,10 @@
 {% for item in experience %}
-	{\bf {{ item.company }}}, {\sl {{ item.location }}} \hfill {\sl {{ item.duration.start | as_date(fmt_month_year) }} -- {{ item.duration.end | as_date(fmt_month_year) }}} \\
+	{\bf {{ item.company | latex_escape }}}, {\sl {{ item.location | latex_escape }}} \hfill {\sl {{ item.duration.start | as_date(fmt_month_year) }} -- {{ item.duration.end | as_date(fmt_month_year) }}} \\
 	{\sl — {% if links %}\href{ {{ item.url }} }{ {{ item.url }} }{% else %}\weburl{ {{- item.url -}} }{% endif %}} \\
-	{\sl {{ item.title }} } \hfill {\sl ({{ parse_duration(item.duration.start, item.duration.end) }})} \\
+	{\sl {{ item.title | latex_escape }} } \hfill {\sl ({{ parse_duration(item.duration.start, item.duration.end) }})} \\
 	{%- if item.description %}
 	\\
-	{{ item.description }}
+	{{ item.description | latex_escape }}
 	{%- endif %}
 	{%- if item.achievements %}
 	\begin{itemize}

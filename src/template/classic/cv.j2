@@ -12,17 +12,23 @@
 	linkcolor=blue,
 	filecolor=magenta,
 	urlcolor=cyan,
-	pdftitle={{ personal.name | escape }} - CV,
+	% The opening brace is deliberately separated from the expression by a space:
+	% written flush against the expression delimiters it would open a Jinja tag
+	% instead, and the value would come out unbraced.
+	pdftitle={ {{- personal.name | latex_escape }} - CV},
 	pdfpagemode=FullScreen,
 }
 
 \usepackage{helvet}
 \usepackage{graphicx}
+
 {%- if not links %}
 
 {% raw %}% Emitted only for --no-links, where an address that was hidden behind a
 % label ("GitHub", "Transcript of records", a date) has to become readable text
-% instead. A linked build never sees this, so it renders as it always has.
+% instead. A linked build never sees this, so it renders as it always has --
+% including \emergencystretch, which changes line breaking document-wide and so
+% must not leak into a linked build.
 % Scoped \urlstyle{same} keeps the address in the body font and lets it break at
 % / -- this layout's measure is 5.2in, so a bare URL would run into the margin.
 \newcommand{\weburl}[1]{{\urlstyle{same}\nolinkurl{#1}}}
@@ -44,18 +50,18 @@
 {% set fmt_full_date = "%d.%m.%Y" %}
 
 \begin{document}
-	\moveleft.5\hoffset\centerline{\huge\bf {{ personal.name }}}
+	\moveleft.5\hoffset\centerline{\huge\bf {{ personal.name | latex_escape }}}
 	\moveleft\hoffset\vbox{\hrule width\resumewidth height 1.5pt}
 	{% if personal.dob and market.get("show_dob", true) %}
 	\moveleft.5\hoffset\centerline{ Date of birth: {{ personal.dob | as_date(fmt_full_date) }}}
 	{% endif %}
 	{% if personal.address and market.get("show_address", true) %}
-	\moveleft.5\hoffset\centerline{ Address: {{ parse_address(personal.address) }}}
+	\moveleft.5\hoffset\centerline{ Address: {{ parse_address(personal.address) | latex_escape }}}
 	{% endif %}
 	{% if personal.nationality and market.get("show_nationality", true) %}
-	\moveleft.5\hoffset\centerline{ Nationality: {{ personal.nationality }}}
+	\moveleft.5\hoffset\centerline{ Nationality: {{ personal.nationality | latex_escape }}}
 	{% endif %}
-	\moveleft.5\hoffset\centerline{e-mail: {% if links %}\href{mailto:{{ personal.email }}}{ {{ personal.email }}}{% else %}{{ personal.email }}{% endif %} -- Tel: {{ personal.phone }}}
+	\moveleft.5\hoffset\centerline{e-mail: {% if links %}\href{mailto:{{ personal.email }}}{ {{ personal.email | latex_escape }}}{% else %}{{ personal.email | latex_escape }}{% endif %} -- Tel: {{ personal.phone | latex_escape }}}
 	\moveleft.5\hoffset\centerline{\sl{ {%- if links %}\href{ {{ personal.github }} }{GitHub} -- \href{ {{ personal.linkedin }} }{LinkedIn}{% else %}\weburl{ {{- personal.github -}} } -- \weburl{ {{- personal.linkedin -}} }{% endif -%} }}
 	{% if personal.photo and market.get("show_photo", true) %}
 	% Zero-height, bottom-anchored box: the photo floats over the empty right
@@ -78,6 +84,6 @@
 	\moveleft\hoffset\vbox{\hrule width\resumewidth height 0.4pt}
 	\moveleft.5\hoffset\centerline{\footnotesize{Last updated at {{ now.strftime('%Y-%m-%d') }} -- the most recent copy can be found at {% if links %}\href{ {{ personal.cv_url }}}{ {{ personal.cv_url }}}{% else %}\weburl{ {{- personal.cv_url -}} }{% endif %}}}
 	{% if commit_sha %}
-	\moveleft.5\hoffset\centerline{\footnotesize{This CV was generated using {% if links %}\href{https://github.com/brunosaboia/cv}{https://github.com/brunosaboia/cv}{% else %}\weburl{https://github.com/brunosaboia/cv}{% endif %}. Commit SHA: {{ commit_sha }}}}
+	\moveleft.5\hoffset\centerline{\footnotesize{This CV was generated using {% if links %}\href{https://github.com/brunosaboia/cv}{https://github.com/brunosaboia/cv}{% else %}\weburl{https://github.com/brunosaboia/cv}{% endif %}. Commit SHA: {{ commit_sha | latex_escape }}}}
 	{% endif %}
 \end{document}

@@ -264,6 +264,72 @@ class TestLinks:
 		assert "\\weburl" not in tex
 
 
+class TestClassicEscaping:
+	"""Every text field the classic layout prints has to go through
+	latex_escape. An unescaped '&' aborts pdflatex, which is merely annoying;
+	an unescaped '%' is the dangerous one -- it comments out the rest of the
+	line, pdflatex still exits 0, and a silently truncated CV deploys."""
+
+	SENTINEL = "R&D 100%"
+	ESCAPED = r"R\&D 100\%"
+	# phone, address.street, nationality, 4 experience fields, 4 education
+	# fields, 2 award fields, 1 certification field -- plus the name, which
+	# classic prints twice (the pdftitle metadata and the visible heading).
+	INJECTIONS = 16
+
+	@pytest.fixture
+	def tex(self, tmp_path, monkeypatch):
+		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
+		data["personal"]["name"] = self.SENTINEL
+		data["personal"]["phone"] = self.SENTINEL
+		data["personal"]["nationality"] = self.SENTINEL
+		data["personal"]["address"]["street"] = self.SENTINEL
+		for field in ("company", "location", "title", "description"):
+			data["experience"][0][field] = self.SENTINEL
+		for field in ("institution", "location", "degree", "field"):
+			data["education"][0][field] = self.SENTINEL
+		data["awards"][0]["title"] = self.SENTINEL
+		data["awards"][0]["place"] = self.SENTINEL
+		data["certifications"][0]["title"] = self.SENTINEL
+
+		specials = tmp_path / "specials.json"
+		specials.write_text(json.dumps(data), encoding="utf-8")
+		return run_main(
+			tmp_path, monkeypatch,
+			"--layout", "classic", "--market", "CH",
+			"--data-dir", str(REPO_ROOT / "data"),
+			input_json=specials,
+		)
+
+	def test_no_field_reaches_the_document_unescaped(self, tex):
+		assert self.SENTINEL not in strip_latex_comments(tex)
+
+	def test_every_field_survives_in_escaped_form(self, tex):
+		# Counting, not just presence: a field that lost its text entirely
+		# would still pass an "is it escaped" check.
+		assert strip_latex_comments(tex).count(self.ESCAPED) == self.INJECTIONS
+
+	@pytest.mark.parametrize("layout", ["ats", "txt"])
+	def test_the_other_layouts_were_already_safe(self, tmp_path, monkeypatch, layout):
+		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
+		data["experience"][0]["company"] = self.SENTINEL
+		specials = tmp_path / "specials.json"
+		specials.write_text(json.dumps(data), encoding="utf-8")
+		tex = run_main(tmp_path, monkeypatch, "--layout", layout, input_json=specials)
+		# txt is plain text and needs no escaping at all; ats escapes everything.
+		expected = self.SENTINEL if layout == "txt" else self.ESCAPED
+		assert expected in tex
+
+
+class TestPdfMetadata:
+	def test_classic_pdftitle_is_braced(self, tmp_path, monkeypatch):
+		# "pdftitle={" written flush against the Jinja delimiters would open a
+		# Jinja tag instead of a LaTeX group, and the value would reach
+		# hyperref unbraced -- fragile, and it silently swallowed the brace.
+		tex = run_main(tmp_path, monkeypatch)
+		assert "pdftitle={John Doe - CV}," in tex
+
+
 class TestLayoutRuleOverrides:
 	def test_ats_drops_the_photo_even_for_a_photo_market(self, tmp_path, monkeypatch):
 		tex = run_main(tmp_path, monkeypatch, "--layout", "ats", "--market", "CH")

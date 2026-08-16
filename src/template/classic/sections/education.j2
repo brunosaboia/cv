@@ -1,8 +1,8 @@
 {% for edu in education %}
-	{\bf {{ edu.institution }}}, {\sl {{ edu.location }}} \hfill {\sl {{ edu.duration.start | as_date(fmt_year) }} -- {{ edu.duration.end | as_date(fmt_year) }} } \\
+	{\bf {{ edu.institution | latex_escape }}}, {\sl {{ edu.location | latex_escape }}} \hfill {\sl {{ edu.duration.start | as_date(fmt_year) }} -- {{ edu.duration.end | as_date(fmt_year) }} } \\
 	{\sl — {% if links %}\href{ {{ edu.url }} }{ {{ edu.url }} }{% else %}\weburl{ {{- edu.url -}} }{% endif %}} \\
-	{\sl {{ edu.degree }} } \\
-	{{ edu.field }}{% if links %} (\href{ {{ edu.transcript }} }{Transcript of records}){% else %} \\
+	{\sl {{ edu.degree | latex_escape }} } \\
+	{{ edu.field | latex_escape }}{% if links %} (\href{ {{ edu.transcript }} }{Transcript of records}){% else %} \\
 	Transcript: \weburl{ {{- edu.transcript -}} }{% endif %}
 {% endfor %}
 \hfill

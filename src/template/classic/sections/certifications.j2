@@ -1,6 +1,6 @@
 \begin{itemize}
 	{% for cert in certifications %}
-		\item {\sl {{ cert.title }} } ({% if links %}\href{ {{ cert.link }} }{ {{ cert.attained_at.date | as_date(fmt_year) }}}{% else %}{{ cert.attained_at.date | as_date(fmt_year) }}{% endif %})
+		\item {\sl {{ cert.title | latex_escape }} } ({% if links %}\href{ {{ cert.link }} }{ {{ cert.attained_at.date | as_date(fmt_year) }}}{% else %}{{ cert.attained_at.date | as_date(fmt_year) }}{% endif %})
 		{%- if not links %}
 		\weburlline{ {{- cert.link -}} }
 		{%- endif %}
