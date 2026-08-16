@@ -1,0 +1,8 @@
+{% if publications %}
+{% for pub in publications %}
+- {{ pub.title }} ({{ pub.published_at.date | as_date(fmt_year) }})
+{% if pub.doi %}
+  DOI: https://doi.org/{{ pub.doi }}
+{% endif %}
+{% endfor %}
+{% endif %}

@@ -76,10 +76,15 @@ class TestLayouts:
 			run_main(tmp_path, monkeypatch, "--layout", "nope")
 		message = str(exc_info.value)
 		assert "Unknown layout 'nope'" in message
-		assert "ats, classic" in message
+		assert "ats, classic, txt" in message
+
+	def test_txt_layout_selected_explicitly(self, tmp_path, monkeypatch):
+		txt = run_main(tmp_path, monkeypatch, "--layout", "txt")
+		assert "\\documentclass" not in txt
+		assert "John Doe" in txt
 
 	def test_available_layouts_lists_directories_holding_a_root_template(self):
-		assert available_layouts(str(REPO_ROOT / "src" / "template")) == ["ats", "classic"]
+		assert available_layouts(str(REPO_ROOT / "src" / "template")) == ["ats", "classic", "txt"]
 
 	def test_available_layouts_of_a_missing_directory_is_empty(self, tmp_path):
 		assert available_layouts(str(tmp_path / "nowhere")) == []
@@ -147,10 +152,45 @@ class TestAtsLayoutIsParseable:
 		assert re.search(r"\\\\\s*\n\s*\n", tex) is None
 
 
+class TestTxtLayout:
+	"""The plain-text layout has no markup at all: what Jinja renders is the
+	final artefact, so there is nothing between the data and the reader."""
+
+	@pytest.fixture
+	def txt(self, tmp_path, monkeypatch):
+		return run_main(tmp_path, monkeypatch, "--layout", "txt")
+
+	def test_no_latex_markup(self, txt):
+		assert "\\" not in txt
+		assert "\\documentclass" not in txt
+
+	def test_headings_use_conventional_section_names(self, txt):
+		for heading in ("PROFESSIONAL SUMMARY", "WORK EXPERIENCE", "EDUCATION", "SKILLS", "LANGUAGES"):
+			assert heading in txt
+
+	def test_dates_stay_next_to_their_employer(self, txt):
+		lines = txt.splitlines()
+		company_line = next(i for i, l in enumerate(lines) if l.startswith("Swiss National Bank"))
+		assert "June 2023 - Present (3 years, 2 months)" in lines[company_line + 2]
+
+	def test_labelled_contact_fields(self, txt):
+		assert "Email: john.doe@example.com" in txt
+		assert "Phone: " in txt
+
+	def test_urls_are_plain_text(self, txt):
+		assert "LinkedIn: https://linkedin.com/in/johndoe" in txt
+		assert "GitHub: https://github.com/johndoe" in txt
+
+	def test_no_photo_even_for_a_photo_market(self, tmp_path, monkeypatch):
+		txt = run_main(tmp_path, monkeypatch, "--layout", "txt", "--market", "CH")
+		assert "Address: " in txt
+		assert "Date of birth: " in txt
+
+
 class TestLanguagesSection:
 	"""Spoken languages are a top-level section, not a skills subsection."""
 
-	@pytest.mark.parametrize("layout", ["classic", "ats"])
+	@pytest.mark.parametrize("layout", ["classic", "ats", "txt"])
 	def test_rendered_from_the_top_level_key(self, tmp_path, monkeypatch, layout):
 		tex = run_main(tmp_path, monkeypatch, "--layout", layout)
 		assert "English" in tex and "Native" in tex
@@ -190,7 +230,7 @@ class TestLinks:
 		assert "GitHub: \\weburl{https://github.com/johndoe}" in tex
 		assert "Email: john.doe@example.com" in tex
 
-	@pytest.mark.parametrize("layout", ["classic", "ats"])
+	@pytest.mark.parametrize("layout", ["classic", "ats", "txt"])
 	def test_no_links_leaves_no_href_in_any_layout(self, tmp_path, monkeypatch, layout):
 		# \href is the only thing that emits a PDF link annotation, so one
 		# unguarded call anywhere in a section template silently defeats the

@@ -1,0 +1,6 @@
+{% for cert in certifications %}
+- {{ cert.title }} ({{ cert.attained_at.date | as_date(fmt_year) }})
+{% if cert.link %}
+  {{ cert.link }}
+{% endif %}
+{% endfor %}

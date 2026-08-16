@@ -1,0 +1,14 @@
+{% for edu in education %}
+{{ edu.institution }}{% if edu.location %}, {{ edu.location }}{% endif +%}
+{{ edu.degree }}{% if edu.field %}, {{ edu.field }}{% endif +%}
+{{ edu.duration.start | as_date(fmt_month_year) }} - {{ edu.duration.end | as_date(fmt_month_year) }}
+{% if edu.url %}
+{{ edu.url }}
+{% endif %}
+{% if edu.transcript %}
+Transcript of records: {{ edu.transcript }}
+{% endif %}
+{% if not loop.last %}
+
+{% endif %}
+{% endfor %}

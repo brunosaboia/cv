@@ -57,9 +57,24 @@ jobs:
         make build LINKS=0 STRICT=1
         make build LAYOUT=ats LINKS=0 STRICT=1
 
+    # txt has no LaTeX pass at all, so it also has to survive check-latex
+    # without ever needing pdflatex -- run it before LaTeX is even relevant.
+    - name: Build sample CV (txt layout, strict)
+      run: make build LAYOUT=txt STRICT=1
+
+    - name: Build sample CV (txt layout, CH market, strict)
+      run: make build LAYOUT=txt MARKET=CH STRICT=1
+
     - name: Upload sample PDFs
       uses: actions/upload-artifact@v7
       with:
         name: sample-cvs
         path: out/*.pdf
+        retention-days: 14
+
+    - name: Upload sample TXTs
+      uses: actions/upload-artifact@v7
+      with:
+        name: sample-cv-txts
+        path: out/*.txt
         retention-days: 14

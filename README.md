@@ -28,7 +28,7 @@ Everything a pipeline needs is parametrized (via `make` variables or environment
 | `INPUT_JSON` | `$(DATA_DIR)/cv.json` | The CV data file |
 | `MARKET` | `default` | Target market code (`CH`, `BR`, …) selecting presentation rules |
 | `MARKET_RULES` | `config/market_rules.json` | Presentation rules; the in-repo file is the default, override if needed |
-| `LAYOUT` | `classic` | Which rendering to produce — `classic` or `ats` (see below) |
+| `LAYOUT` | `classic` | Which rendering to produce — `classic`, `ats`, or `txt` (see below) |
 | `LINKS` | `1` | `0` emits no clickable link annotations, keeping every URL as text (see below) |
 | `TARGET` | `cv`, plus `-$(LAYOUT)`, `-$(MARKET)` and `-nolinks` when non-default | Output base name — no two builds overwrite each other |
 | `OUTDIR` | `out` | Output directory |
@@ -48,10 +48,12 @@ make prod-build DATA_DIR=/path/to/cv-data MARKET=CH
 |--------|--------|-----|
 | `classic` | `out/cv.pdf` | The typographic CV — `res.cls`, margin section titles, right-aligned dates, photo where the market allows one |
 | `ats` | `out/cv-ats.pdf` | The copy you upload to a job portal, tuned for résumé scanners and LLM parsers |
+| `txt` | `out/cv-txt.txt` | Plain text, no PDF step at all — for portals that take a `.txt` upload, or whose PDF extraction can't be trusted |
 
 ```sh
 make build LAYOUT=ats            # -> out/cv-ats.pdf
 make build LAYOUT=ats MARKET=CH  # -> out/cv-ats-CH.pdf
+make build LAYOUT=txt            # -> out/cv-txt.txt
 ```
 
 ### Why a separate ATS layout
@@ -72,7 +74,10 @@ make build LINKS=0                    # -> out/cv-nolinks.pdf
 make build LAYOUT=ats LINKS=0         # -> out/cv-ats-nolinks.pdf
 ```
 
-Both layouts honour it, but they pay different prices. In `ats` every link's text was already the URL itself, so the text layer comes out byte-for-byte identical — only the annotations disappear. In `classic` several links are *labelled* (`GitHub`, `LinkedIn`, `Transcript of records`, and the award / certification / review dates), and dropping those would take the addresses out of the document entirely, so `LINKS=0` prints them instead: as a URL pair in the header, and on a continuation line under the entry elsewhere. That makes a link-free `classic` noticeably denser than the normal one. A `LINKS=1` build is unaffected — it renders exactly as it always has.
+Both PDF layouts honour it, but they pay different prices. In `ats` every link's text was already the URL itself, so the text layer comes out byte-for-byte identical — only the annotations disappear. In `classic` several links are *labelled* (`GitHub`, `LinkedIn`, `Transcript of records`, and the award / certification / review dates), and dropping those would take the addresses out of the document entirely, so `LINKS=0` prints them instead: as a URL pair in the header, and on a continuation line under the entry elsewhere. That makes a link-free `classic` noticeably denser than the normal one. A `LINKS=1` build is unaffected — it renders exactly as it always has. `txt` has no link annotations to drop in the first place — every address is already plain text — so `LINKS` makes no difference to its output.
+
+### Why a separate txt layout
+Even the `ats` layout only wins the *text layer a scanner extracts from the PDF* — it still goes through `pdflatex`, and font substitution, a missing package, or a broken toolchain install can all corrupt that layer before a parser ever sees it. Some portals take a `.txt` upload directly, or run extraction too crude to trust with a PDF at all. `txt` sidesteps the PDF step entirely: what Jinja renders to `out/cv-txt.txt` *is* the artefact, so there is nothing between the data and the parser. It shares the `ats` layout's section ordering, conventional heading names, and one-fact-per-line contact block, but drops all markup — no LaTeX, no escaping, just plain lines. `make build LAYOUT=txt` needs neither `pdflatex` nor `check-latex` to succeed.
 
 Adding a layout means adding a directory: `src/template/<name>/cv.j2` plus `sections/*.j2`, and it shows up in `make build LAYOUT=<name>` with no code change. Presentation rules a layout cannot express are declared in `LAYOUT_RULE_OVERRIDES` in `src/generate_cv.py`, and win over the market.
 

@@ -9,7 +9,9 @@ from jinja2 import Environment, FileSystemLoader
 # Each layout is a self-contained directory under --template-dir holding a root
 # cv.j2 plus its own sections/: same data, a different rendering contract.
 # "classic" is the typographic one; "ats" trades density for a linear,
-# single-column text layer that résumé parsers can read back correctly.
+# single-column text layer that résumé parsers can read back correctly; "txt"
+# goes further still and skips PDF entirely, for portals that take a plain
+# text upload or whose extraction is too crude to trust with a PDF at all.
 DEFAULT_LAYOUT = "classic"
 
 # Presentation rules a layout overrides regardless of market, because the
@@ -20,6 +22,8 @@ LAYOUT_RULE_OVERRIDES = {
 	# Forcing it off here also keeps --strict from demanding a photo file for a
 	# layout that would never emit it.
 	"ats": {"show_photo": False},
+	# Plain text has no way to embed an image at all.
+	"txt": {"show_photo": False},
 }
 
 latex_format_map = {
@@ -183,9 +187,15 @@ def main():
 
 	# Rooted at the layout directory so every layout refers to its own
 	# "cv.j2" and "sections/*.j2" by the same names.
+	# trim_blocks/lstrip_blocks swallow the newline and leading whitespace a
+	# {% %} tag leaves on its own line. LaTeX shrugs that whitespace off, so the
+	# other layouts don't need it, but in a plain-text layout it would otherwise
+	# come straight out as blank lines and stray indentation in the artefact.
 	env = Environment(
 		loader=FileSystemLoader(layout_dir),
-		autoescape=False
+		autoescape=False,
+		trim_blocks=(args.layout == "txt"),
+		lstrip_blocks=(args.layout == "txt"),
 	)
 
 	env.filters["as_date"] = as_date

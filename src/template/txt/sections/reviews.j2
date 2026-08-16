@@ -1,0 +1,12 @@
+{% set labels = {"bachelor_thesis": "Bachelor theses", "papers": "Papers"} %}
+{% for category, items in reviews.items() %}
+{% if items %}
+{{ labels.get(category, category | replace("_", " ") | title) }}:
+{% for review in items %}
+- {{ review.title }}, {{ review.author }} ({{ review.published_at.date | as_date(fmt_year) }})
+{% if review.link %}
+  {{ review.link }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endfor %}

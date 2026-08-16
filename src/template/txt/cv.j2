@@ -1,0 +1,64 @@
+{#
+Plain-text layout.
+
+The other layouts (classic, ats) both render to PDF, and even the ats one
+only wins the *text layer* a scanner extracts from that PDF -- it still goes
+through pdflatex, and font substitution, kerning, or a broken toolchain
+install can all corrupt that layer before a parser ever sees it. Some portals
+take a .txt upload directly, or run OCR/extraction so crude that a PDF loses
+more than it needs to. This layout sidesteps all of that: what Jinja renders
+is the final artefact, byte for byte, with nothing between it and the parser.
+
+Consequently there is no markup here at all, LaTeX or otherwise -- no
+escaping, no macros, just the data with plain-text line breaks and headings.
+#}
+{% set fmt_year = "%Y" %}
+{% set fmt_month_year = "%B %Y" %}
+{% set fmt_full_date = "%d.%m.%Y" %}
+{% set ats_headings = {
+	"summary": "Professional Summary",
+	"experience": "Work Experience",
+	"education": "Education",
+	"publications": "Publications",
+	"reviews": "Peer Reviews",
+	"awards": "Awards and Honours",
+	"certifications": "Certifications",
+	"skills": "Skills",
+	"languages": "Languages",
+	"hobbies": "Interests"
+} %}
+{{ personal.name }}
+Email: {{ personal.email }}
+Phone: {{ personal.phone }}
+{% if personal.address and market.get("show_address", true) %}
+Address: {{ parse_address(personal.address) }}
+{% endif %}
+{% if personal.nationality and market.get("show_nationality", true) %}
+Nationality: {{ personal.nationality }}
+{% endif %}
+{% if personal.dob and market.get("show_dob", true) %}
+Date of birth: {{ personal.dob | as_date(fmt_full_date) }}
+{% endif %}
+{% if personal.linkedin %}
+LinkedIn: {{ personal.linkedin }}
+{% endif %}
+{% if personal.github %}
+GitHub: {{ personal.github }}
+{% endif %}
+{% for section in headers %}
+{% if section %}
+{% set heading = ats_headings.get(section, section | title) %}
+
+{{ heading | upper }}
+{{ "-" * (heading | length) }}
+{% filter trim %}
+{% include "sections/" ~ section ~ ".j2" with context %}
+{% endfilter %}
+
+{% endif %}
+{% endfor %}
+{{ "-" * 62 }}
+Last updated at {{ now.strftime('%Y-%m-%d') }}. The most recent copy can be found at {{ personal.cv_url }}.
+{% if commit_sha %}
+Generated with https://github.com/brunosaboia/cv, commit {{ commit_sha }}.
+{% endif %}

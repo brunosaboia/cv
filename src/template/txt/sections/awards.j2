@@ -1,0 +1,6 @@
+{% for award in awards %}
+- {{ award.title }}{% if award.place %}, {{ award.place }}{% endif %} ({{ award.attained_at.date | as_date(fmt_month_year) }})
+{% if award.link %}
+  {{ award.link }}
+{% endif %}
+{% endfor %}

@@ -1,0 +1,24 @@
+{% for item in experience %}
+{{ item.company }}{% if item.location %}, {{ item.location }}{% endif +%}
+{{ item.title }}
+{{ item.duration.start | as_date(fmt_month_year) }} - {{ item.duration.end | as_date(fmt_month_year) }} ({{ parse_duration(item.duration.start, item.duration.end) }})
+{% if item.url %}
+{{ item.url }}
+{% endif %}
+{% if item.description %}
+
+{{ item.description }}
+{% endif %}
+{% if item.achievements %}
+
+{% for achievement in item.achievements %}
+- {{ achievement }}
+{% endfor %}
+{% endif %}
+{% if item.technologies %}
+Technologies: {{ item.technologies | join(', ') }}
+{% endif %}
+{% if not loop.last %}
+
+{% endif %}
+{% endfor %}

@@ -1,0 +1,3 @@
+{% for category, items in hobbies.items() %}
+{{ category | replace("_", " ") | title }}: {{ items | join(', ') }}
+{% endfor %}
