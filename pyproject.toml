@@ -5,7 +5,6 @@ description = "Bruno Saboia's CV generator"
 requires-python = ">=3.13"
 dependencies = [
 	"jinja2",
-	"humanize",
 ]
 
 [dependency-groups]
