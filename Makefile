@@ -72,8 +72,16 @@ endif
 check-uv:
 	@command -v $(UV) >/dev/null 2>&1 || { echo "Error: uv is not installed. See https://docs.astral.sh/uv/getting-started/installation/"; exit 1; }
 
+# Spelled out with addprefix rather than a shell brace expansion: make runs
+# recipes under /bin/sh, which is dash on Debian/Ubuntu and has no brace
+# expansion, so "$(OUTDIR)/*.{aux,log,...}" reached rm as one literal filename,
+# matched nothing, and exited 0 -- the target was a silent no-op for years.
+# addprefix expands at make level, and each resulting pattern is globbed by the
+# shell; an unmatched one is harmless to rm -f.
+CLEAN_EXTS = aux log synctex.gz out toc bbl blg fdb_latexmk fls tex
+
 clean:
-	@rm -f $(OUTDIR)/*.{aux,log,synctex.gz,out,toc,bbl,blg,fdb_latexmk,fls,tex}
+	@rm -f $(addprefix $(OUTDIR)/*., $(CLEAN_EXTS))
 
 cleanall: clean
 	@rm -rf $(OUTDIR)/
