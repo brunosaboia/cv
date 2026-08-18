@@ -45,6 +45,15 @@
 
 \setlength{\textwidth}{5.2in} %default 5.1in % Text width of the document
 
+% res.cls sets \parskip=\baselineskip (every paragraph break gets a full
+% blank line) but \sectionskip=1.2ex -- smaller than \parskip. \section
+% opens with \addvspace{\sectionskip}, which tops up to its argument rather
+% than adding to it, so against a \baselineskip-sized \parskip it contributes
+% nothing: a new section reads as just another paragraph. Doubling it to
+% 2\baselineskip (the same ratio the ats layout uses between \cvsection's
+% \addvspace and its own \parskip) is enough to read as a section break.
+\sectionskip=2\baselineskip plus 6pt minus 3pt
+
 {% set fmt_year = "%Y" %}
 {% set fmt_month_year = "%B %Y" %}
 {% set fmt_full_date = "%d.%m.%Y" %}
