@@ -30,7 +30,8 @@ Everything a pipeline needs is parametrized (via `make` variables or environment
 | `MARKET_RULES` | `config/market_rules.json` | Presentation rules; the in-repo file is the default, override if needed |
 | `LAYOUT` | `classic` | Which rendering to produce — `classic`, `ats`, or `txt` (see below) |
 | `LINKS` | `1` | `0` emits no clickable link annotations, keeping every URL as text (see below) |
-| `TARGET` | `cv`, plus `-$(LAYOUT)`, `-$(MARKET)` and `-nolinks` when non-default | Output base name — no two builds overwrite each other |
+| `COMPANY_DESCRIPTIONS` | `mid` | `min`/`mid`/`max` — how many employer blurbs to print (see below) |
+| `TARGET` | `cv`, plus `-$(LAYOUT)`, `-$(MARKET)`, `-nolinks`, `-alldesc`/`-nodesc` when non-default | Output base name — no two builds overwrite each other |
 | `OUTDIR` | `out` | Output directory |
 | `STRICT` | `0` | `1` fails on unknown market or missing files instead of degrading gracefully |
 | `COMMIT_SHA` | `git rev-parse` | Stamp embedded in the PDF; CI can inject its own |
@@ -87,6 +88,23 @@ make build LAYOUT=ats LINKS=0         # -> out/cv-ats-nolinks.pdf
 ```
 
 Both PDF layouts honour it, but they pay different prices. In `ats` every link's text was already the URL itself, so the text layer comes out byte-for-byte identical — only the annotations disappear. In `classic` several links are *labelled* (`GitHub`, `LinkedIn`, `Transcript of records`, and the award / certification / review dates), and dropping those would take the addresses out of the document entirely, so `LINKS=0` prints them instead: as a URL pair in the header, and on a continuation line under the entry elsewhere. That makes a link-free `classic` noticeably denser than the normal one. A `LINKS=1` build is unaffected — it renders exactly as it always has. `txt` has no link annotations to drop in the first place — every address is already plain text — so `LINKS` makes no difference to its output.
+
+### Company description verbosity
+An `experience[]` entry can carry two different blurbs: `item.description` (what *you* did there — always printed) and `item.company`'s own `description` (what the *employer* is — a household name doesn't need it explained). Each employer in `companies[]` can be marked `"is_well_known": true`, but whether a build actually acts on that is a separate knob:
+
+```sh
+make build                                  # -> out/cv.pdf         (mid, default)
+make build COMPANY_DESCRIPTIONS=max         # -> out/cv-alldesc.pdf
+make build COMPANY_DESCRIPTIONS=min         # -> out/cv-nodesc.pdf
+```
+
+| Level | Behaviour |
+|-------|-----------|
+| `min` | Hides every employer's blurb, even one *not* flagged `is_well_known` |
+| `mid` (default) | Hides only an employer flagged `is_well_known: true` — today's behaviour |
+| `max` | Shows every employer's blurb, even one flagged `is_well_known: true` |
+
+The level is resolved once per build, in `generate_cv.py`, into a plain `company.show_description` boolean — every layout's template reads that one flag rather than re-deriving it from `is_well_known` itself.
 
 ### Why a separate txt layout
 Even the `ats` layout only wins the *text layer a scanner extracts from the PDF* — it still goes through `pdflatex`, and font substitution, a missing package, or a broken toolchain install can all corrupt that layer before a parser ever sees it. Some portals take a `.txt` upload directly, or run extraction too crude to trust with a PDF at all. `txt` sidesteps the PDF step entirely: what Jinja renders to `out/cv-txt.txt` *is* the artefact, so there is nothing between the data and the parser. It shares the `ats` layout's section ordering, conventional heading names, and one-fact-per-line contact block, but drops all markup — no LaTeX, no escaping, just plain lines. `make build LAYOUT=txt` needs neither `pdflatex` nor `check-latex` to succeed.
