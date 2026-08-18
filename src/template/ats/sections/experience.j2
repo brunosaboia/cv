@@ -13,7 +13,9 @@
 \weburl{ {{- item.company.url -}} }
 {% endif %}
 \end{cventry}
-{% if item.company.description %}
+{# Skip the employer blurb for a household name -- companies[].is_well_known,
+   set per-company in the data (see classic/sections/experience.j2). #}
+{% if item.company.description and not item.company.is_well_known %}
 {{ item.company.description | latex_escape }}
 {% endif %}
 {% if item.description %}

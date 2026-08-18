@@ -347,6 +347,11 @@ class TestClassicEscaping:
 		data["personal"]["address"]["street"] = self.SENTINEL
 		data["companies"][0]["name"] = self.SENTINEL
 		data["companies"][0]["description"] = self.SENTINEL
+		# companies[0] (SNB) is_well_known in the sample data, which would
+		# otherwise suppress the description this test injects -- see
+		# TestWellKnownCompanies. Escaping and the well-known toggle are
+		# orthogonal; this test isn't about the toggle.
+		data["companies"][0]["is_well_known"] = False
 		for field in ("location", "title", "description"):
 			data["experience"][0][field] = self.SENTINEL
 		for field in ("institution", "location", "degree", "field"):
@@ -459,6 +464,45 @@ class TestCompanyResolution:
 	def test_unknown_company_strict_fails(self, tmp_path, monkeypatch):
 		with pytest.raises(SystemExit):
 			run_main(tmp_path, monkeypatch, "--strict", input_json=self._with_broken_company(tmp_path))
+
+
+class TestWellKnownCompanies:
+	"""companies[].is_well_known lets a household-name employer (the sample's
+	Swiss National Bank) skip its own blurb, since a reader already knows what
+	it is; a less familiar one (NeuralCore) still needs the explanation. The
+	flag is per-company, not per-role, and only ever touches company.description
+	-- the role's own description (the "my mission was..." text) always prints."""
+
+	SNB_BLURB = "central bank of Switzerland"
+	NEURALCORE_BLURB = "machine learning solutions for healthcare"
+
+	@pytest.mark.parametrize("layout", ["classic", "ats", "txt"])
+	def test_well_known_companys_blurb_is_omitted(self, tmp_path, monkeypatch, layout):
+		tex = run_main(tmp_path, monkeypatch, "--layout", layout)
+		assert self.SNB_BLURB not in tex
+
+	@pytest.mark.parametrize("layout", ["classic", "ats", "txt"])
+	def test_unknown_companys_blurb_still_prints(self, tmp_path, monkeypatch, layout):
+		tex = run_main(tmp_path, monkeypatch, "--layout", layout)
+		assert self.NEURALCORE_BLURB in tex
+
+	def test_the_roles_own_description_still_prints_for_a_well_known_company(self, tmp_path, monkeypatch):
+		# Only company.description is gated; item.description (this role's own
+		# text) is unrelated data and must survive regardless of the flag.
+		tex = run_main(tmp_path, monkeypatch)
+		assert "help modernize the bank" in tex
+
+	def test_missing_flag_defaults_to_printing_the_blurb(self, tmp_path, monkeypatch):
+		# is_well_known is optional; a company that omits it entirely (as
+		# opposed to declaring it false) must not lose its description --
+		# Jinja's Undefined is falsy, so "not item.company.is_well_known" holds
+		# and the omission alone must not read as "well known".
+		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
+		del data["companies"][0]["is_well_known"]
+		specials = tmp_path / "specials.json"
+		specials.write_text(json.dumps(data), encoding="utf-8")
+		tex = run_main(tmp_path, monkeypatch, input_json=specials)
+		assert self.SNB_BLURB in tex
 
 
 class TestCommitSha:
