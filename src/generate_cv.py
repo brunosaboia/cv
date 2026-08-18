@@ -166,6 +166,19 @@ def parse_nationality(nationality) -> str:
 		return ", ".join(str(n) for n in nationality)
 	return nationality or ""
 
+def simplify_remote_location(location: str) -> str:
+	"""Collapse "Remote (Brazil -- US)" down to the bare "Remote".
+
+	The parenthetical country pair helps a human reader; an ATS location
+	field expects a single place name and doesn't parse a country pair
+	correctly, so it reads as noise or a mis-parsed field instead of
+	information. Any location string that already just says "Remote" (no
+	parenthetical) passes through unchanged.
+	"""
+	if isinstance(location, str) and location.strip().lower().startswith("remote"):
+		return "Remote"
+	return location
+
 def main():
 	parser = argparse.ArgumentParser(description="Generate CV from JSON using Jinja2 + LaTeX")
 	parser.add_argument("--input", "-i", default="data/cv.json", help="Path to the input JSON file")
@@ -289,6 +302,7 @@ def main():
 
 	env.filters["as_date"] = as_date
 	env.filters["latex_escape"] = latex_escape
+	env.filters["simplify_remote_location"] = simplify_remote_location
 	env.globals["now"] = datetime.now(timezone.utc)
 	env.globals["parse_duration"] = parse_duration
 	env.globals["commit_sha"] = args.commit_sha

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from generate_cv import available_layouts, main, parse_nationality, warn_or_fail
+from generate_cv import available_layouts, main, parse_nationality, simplify_remote_location, warn_or_fail
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -256,6 +256,37 @@ class TestTxtLayout:
 		txt = run_main(tmp_path, monkeypatch, "--layout", "txt", "--market", "CH")
 		assert "Address: " in txt
 		assert "Date of birth: " in txt
+
+	def test_remote_location_collapses_to_the_bare_word(self, txt):
+		# GlobalTech's location in the sample data is "Remote (CH -- UK)" --
+		# an ATS location field expects a single place name and doesn't parse
+		# a country pair correctly, so it reads as noise there.
+		assert "GlobalTech Solutions, Remote" in txt
+		assert "Remote (CH -- UK)" not in txt
+
+	def test_non_remote_location_is_unaffected(self, txt):
+		assert "Swiss National Bank, Zürich, CH" in txt
+
+
+class TestSimplifyRemoteLocation:
+	"""Unit tests for the function TestTxtLayout exercises end to end."""
+
+	def test_collapses_a_parenthetical_country_pair(self):
+		assert simplify_remote_location("Remote (Brazil -- US)") == "Remote"
+
+	def test_bare_remote_passes_through(self):
+		assert simplify_remote_location("Remote") == "Remote"
+
+	def test_case_insensitive(self):
+		assert simplify_remote_location("remote (Brazil -- US)") == "Remote"
+
+	def test_non_remote_location_is_untouched(self):
+		assert simplify_remote_location("Zürich, CH") == "Zürich, CH"
+
+	def test_a_city_that_merely_contains_remote_is_not_matched(self):
+		# startswith, not a substring search: a location would have to open
+		# with the word "Remote" to be treated as one.
+		assert simplify_remote_location("Fort Remote, US") == "Fort Remote, US"
 
 
 class TestLanguagesSection:

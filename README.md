@@ -109,6 +109,8 @@ The level is resolved once per build, in `generate_cv.py`, into a plain `company
 ### Why a separate txt layout
 Even the `ats` layout only wins the *text layer a scanner extracts from the PDF* — it still goes through `pdflatex`, and font substitution, a missing package, or a broken toolchain install can all corrupt that layer before a parser ever sees it. Some portals take a `.txt` upload directly, or run extraction too crude to trust with a PDF at all. `txt` sidesteps the PDF step entirely: what Jinja renders to `out/cv-txt.txt` *is* the artefact, so there is nothing between the data and the parser. It shares the `ats` layout's section ordering, conventional heading names, and one-fact-per-line contact block, but drops all markup — no LaTeX, no escaping, just plain lines. `make build LAYOUT=txt` needs neither `pdflatex` nor `check-latex` to succeed.
 
+`txt` also collapses a remote role's location: `"Remote (Brazil -- US)"` in the data prints as the bare `"Remote"`. An ATS's location field parser expects a single place name, not a parenthetical country pair, so the full string was landing there as noise or a mis-parsed field. `classic` and `ats` keep the full string — a human or a scanner reading the *page* handles the parenthetical fine.
+
 Adding a layout means adding a directory: `src/template/<name>/cv.j2` plus `sections/*.j2`, and it shows up in `make build LAYOUT=<name>` with no code change. Presentation rules a layout cannot express are declared in `LAYOUT_RULE_OVERRIDES` in `src/generate_cv.py`, and win over the market.
 
 ## Future

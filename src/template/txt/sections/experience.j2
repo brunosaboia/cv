@@ -1,5 +1,10 @@
 {% for item in experience %}
-{{ item.company.name }}{% if item.location %}, {{ item.location }}{% endif +%}
+{# A remote location like "Remote (Brazil -- US)" reads fine on a page but
+   confuses an ATS's location field parser, which expects a single place
+   name -- collapse it to the bare "Remote" here. Other layouts are read by
+   a person or a scanner that handles the parenthetical fine, so this is
+   txt-only. #}
+{{ item.company.name }}{% if item.location %}, {{ item.location | simplify_remote_location }}{% endif +%}
 {{ item.title }}
 {# No computed duration here, matching ats: a plain-text/ATS reader already
    has both dates and can work out tenure itself; the "(X years, Y months)"
