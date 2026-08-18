@@ -61,7 +61,7 @@
 			"duration": {
 				"start": "2023-06-01"
 			},
-			"description": "My mission was to help modernize the bank's internal reporting tools.",
+			"description": "Helped modernize the bank's internal reporting tools.",
 			"achievements": [
 				"Developed and deployed AI-based financial forecasting models across distributed systems",
 				"Ensured model compliance with regulatory frameworks, passing two internal audits with zero findings",
@@ -84,7 +84,7 @@
 				"start": "2021-01-01",
 				"end": "2023-06-01"
 			},
-			"description": "My mission was to build the core diagnostic models used by hospital partners.",
+			"description": "Built the core diagnostic models used by hospital partners.",
 			"achievements": [
 				"Built end-to-end pipelines for processing medical imaging data",
 				"Designed anomaly-detection models for MRI scans, cutting radiologist review time by 20%"
@@ -99,7 +99,7 @@
 				"start": "2018-09-01",
 				"end": "2020-12-01"
 			},
-			"description": "My mission was to lead integration work with GlobalTech's largest financial clients.",
+			"description": "Led integration work with GlobalTech's largest financial clients.",
 			"achievements": [
 				"Developed secure REST APIs in a cross-functional team of eight",
 				"Built internal web dashboards for financial data visualization"

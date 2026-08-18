@@ -520,7 +520,7 @@ class TestWellKnownCompanies:
 		# text) is unrelated data and must survive at every level, including min.
 		for level in ("min", "mid", "max"):
 			tex = run_main(tmp_path, monkeypatch, "--company-descriptions", level)
-			assert "help modernize the bank" in tex
+			assert "modernize the bank" in tex
 
 	def test_missing_flag_defaults_to_printing_the_blurb_at_mid(self, tmp_path, monkeypatch):
 		# is_well_known is optional; a company that omits it entirely (as
