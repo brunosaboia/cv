@@ -523,6 +523,42 @@ class TestWellKnownCompanies:
 		assert self.SNB_BLURB in tex
 
 
+REAL_DATA_DIR = REPO_ROOT.parent / "cv-data"
+REAL_DATA = REAL_DATA_DIR / "cv.json"
+
+
+@pytest.mark.skipif(not REAL_DATA.exists(), reason="cv-data not checked out as a sibling of this checkout")
+class TestRealWellKnownCompanies:
+	"""TestWellKnownCompanies proves the mechanism on the fictional sample;
+	this proves the real data actually uses it -- a company can be flagged
+	is_well_known and still leak its blurb if, say, the flag gets flipped back
+	or a future template regresses. Runs whenever cv-data sits next to this
+	checkout as ../cv-data: true for a local dev workspace, and true for
+	cv-data's deploy pipeline, which checks out both repos as siblings under
+	$GITHUB_WORKSPACE and runs `make -C cv-repo test` before building anything.
+	No pipeline change was needed -- this rides that existing gate, so a
+	regression fails `make test` locally (before you'd ever push) exactly the
+	same way it fails the deploy. Skips cleanly on cv's own public CI, which
+	has no cv-data checkout and shouldn't need the private data to pass."""
+
+	@pytest.fixture
+	def companies(self):
+		return json.loads(REAL_DATA.read_text(encoding="utf-8"))["companies"]
+
+	@pytest.mark.parametrize("layout", ["classic", "ats", "txt"])
+	def test_well_known_companies_blurb_is_absent(self, tmp_path, monkeypatch, companies, layout):
+		tex = run_main(
+			tmp_path, monkeypatch,
+			"--layout", layout, "--data-dir", str(REAL_DATA_DIR),
+			input_json=REAL_DATA,
+		)
+		leaked = [
+			c["name"] for c in companies
+			if c.get("is_well_known") and c.get("description") and c["description"] in tex
+		]
+		assert not leaked, f"{layout}: blurb leaked into the build for {leaked}"
+
+
 class TestCommitSha:
 	def test_sha_stamped_when_given(self, tmp_path, monkeypatch):
 		tex = run_main(tmp_path, monkeypatch, "--commit-sha", "abc1234")
