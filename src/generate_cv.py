@@ -26,6 +26,41 @@ LAYOUT_RULE_OVERRIDES = {
 	"txt": {"show_photo": False},
 }
 
+# languages[].level is our own market-independent scale: 0 (native) through
+# 4 (basic). Not a market_rules.json flag -- unlike show_photo/show_dob this
+# doesn't toggle template content on or off, it picks which of these tables a
+# level is translated through before templates ever see it, so there is
+# nothing for a template itself to read (test_every_declared_rule_is_read_by_a_template
+# only applies to flags templates branch on).
+LANGUAGE_LEVEL_LABELS = {
+	# Wording already in use on both datasets before this scale existed;
+	# kept verbatim so a "descriptive"-scale build is unchanged.
+	"descriptive": {
+		0: "Native",
+		1: "Full professional proficiency",
+		2: "Professional working proficiency",
+		3: "Limited professional proficiency",
+		4: "Basic",
+	},
+	# CEFR has six tiers (A1-C2) to our five; native is kept as its own label
+	# rather than folded into C2 (a native speaker isn't merely "C2" -- CEFR
+	# has no tier for a mother tongue), and the remaining four skip A1 and
+	# C1 rather than cluster at either end of the scale.
+	"cefr": {
+		0: "Native",
+		1: "C2",
+		2: "B2",
+		3: "B1",
+		4: "A2",
+	},
+}
+DEFAULT_LANGUAGE_SCALE = "descriptive"
+# Markets where a CEFR letter is the expected shorthand for language level.
+LANGUAGE_SCALE_BY_MARKET = {
+	"CH": "cefr",
+	"DE": "cefr",
+}
+
 latex_format_map = {
 	"YYYY": "%Y",
 	"MMMM yyyy": "%B %Y",
@@ -273,6 +308,21 @@ def main():
 	# Applied after the market so a layout that cannot render a field wins over
 	# a market that asks for it (e.g. CH wants a photo, the ATS layout has none).
 	market.update(LAYOUT_RULE_OVERRIDES.get(args.layout, {}))
+
+	# languages[].level is data as a 0-4 integer; resolve it to the display
+	# string here so every layout's template just reads a plain value, the
+	# same shape it always has.
+	language_scale = LANGUAGE_LEVEL_LABELS[LANGUAGE_SCALE_BY_MARKET.get(args.market, DEFAULT_LANGUAGE_SCALE)]
+	for lang in data.get("languages", []):
+		level = lang.get("level")
+		label = language_scale.get(level)
+		if label is None:
+			warn_or_fail(
+				f"Unknown language level {level!r} for '{lang.get('name')}' (expected an integer 0-4)",
+				args.strict, "; showing the raw value",
+			)
+			label = str(level)
+		lang["level"] = label
 
 	# Resolve the photo against the data directory so the data repo stays
 	# self-contained wherever the pipeline checks it out, and fail fast here

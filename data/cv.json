@@ -244,15 +244,15 @@
 	"languages": [
 		{
 			"name": "English",
-			"level": "Native"
+			"level": 0
 		},
 		{
 			"name": "French",
-			"level": "Full professional proficiency"
+			"level": 1
 		},
 		{
 			"name": "German",
-			"level": "Professional working proficiency"
+			"level": 2
 		}
 	],
 	"hobbies": {

@@ -315,6 +315,44 @@ class TestLanguagesSection:
 		assert "languages" not in data["skills"]
 
 
+class TestLanguageLevels:
+	"""languages[].level is our own scale (0 native .. 4 basic), translated to
+	a display string per market: CEFR letters for CH/DE, the descriptive
+	wording every other market (and the data itself, before this scale
+	existed) already used. Sample data: English=0, French=1, German=2."""
+
+	@pytest.mark.parametrize("market", ["default", "BR", "US", "UK"])
+	def test_non_european_markets_use_the_descriptive_wording(self, tmp_path, monkeypatch, market):
+		tex = run_main(tmp_path, monkeypatch, "--market", market)
+		assert "English — Native" in tex
+		assert "French — Full professional proficiency" in tex
+		assert "German — Professional working proficiency" in tex
+
+	@pytest.mark.parametrize("market", ["CH", "DE"])
+	def test_ch_de_use_cefr_letters(self, tmp_path, monkeypatch, market):
+		tex = run_main(tmp_path, monkeypatch, "--market", market)
+		assert "English — Native" in tex  # native has no CEFR letter
+		assert "French — C2" in tex
+		assert "German — B2" in tex
+
+	def test_unknown_level_warns_and_shows_the_raw_value(self, tmp_path, monkeypatch, capsys):
+		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
+		data["languages"][0]["level"] = 7
+		specials = tmp_path / "specials.json"
+		specials.write_text(json.dumps(data), encoding="utf-8")
+		tex = run_main(tmp_path, monkeypatch, input_json=specials)
+		assert "Unknown language level 7" in capsys.readouterr().out
+		assert "English — 7" in tex
+
+	def test_unknown_level_strict_fails(self, tmp_path, monkeypatch):
+		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
+		data["languages"][0]["level"] = 7
+		specials = tmp_path / "specials.json"
+		specials.write_text(json.dumps(data), encoding="utf-8")
+		with pytest.raises(SystemExit):
+			run_main(tmp_path, monkeypatch, "--strict", input_json=specials)
+
+
 class TestLinks:
 	def test_links_are_on_by_default(self, tmp_path, monkeypatch):
 		tex = run_main(tmp_path, monkeypatch, "--layout", "ats")

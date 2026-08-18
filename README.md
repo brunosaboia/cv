@@ -54,6 +54,19 @@ make prod-build DATA_DIR=/path/to/cv-data MARKET=CH
 
 A layout can veto a market: `LAYOUT_RULE_OVERRIDES` in `src/generate_cv.py` is applied after the market rules, which is how `ats` and `txt` stay photo-free even when built for `CH`.
 
+## Language levels
+`languages[].level` in the data is our own scale, not a display string: `0` native, `1` fluent, `2` advanced, `3` intermediate, `4` basic. `generate_cv.py` translates it to a display string once, per market, before any template sees it — so unlike a market rule, there's no flag for a template to read:
+
+| Level | `default`, `BR`, `US`, `UK` | `CH`, `DE` |
+|:-----:|------|:----------:|
+| `0` | Native | Native |
+| `1` | Full professional proficiency | C2 |
+| `2` | Professional working proficiency | B2 |
+| `3` | Limited professional proficiency | B1 |
+| `4` | Basic | A2 |
+
+CEFR has six tiers (A1–C2) to our four non-native ones, so the mapping skips A1 and C1 rather than cluster at either end of the scale; native is kept as its own label on both sides rather than folded into C2, since a mother tongue isn't a CEFR tier at all. A level outside `0`–`4` warns and prints the raw value (or fails under `--strict`) rather than guessing.
+
 ## Layouts
 `MARKET` decides *what* is shown; `LAYOUT` decides *how* it is rendered. The two are independent and compose, so `LAYOUT=ats MARKET=CH` is a thing you can build. Each layout is a self-contained directory under `src/template/` holding a root `cv.j2` and its own `sections/`.
 
