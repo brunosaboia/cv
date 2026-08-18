@@ -420,6 +420,34 @@ class TestPhotoResolution:
 			run_main(tmp_path, monkeypatch, "--market", "CH", "--data-dir", str(empty_data_dir), "--strict")
 
 
+class TestCompanyResolution:
+	"""experience[].company is a short_name key into companies[]; a dangling
+	reference should degrade like a missing photo does, not crash the build."""
+
+	def _with_broken_company(self, tmp_path):
+		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
+		data["experience"][0]["company"] = "does-not-exist"
+		specials = tmp_path / "specials.json"
+		specials.write_text(json.dumps(data), encoding="utf-8")
+		return specials
+
+	def test_unknown_company_warns_and_falls_back_to_the_short_name(self, tmp_path, monkeypatch, capsys):
+		tex = run_main(tmp_path, monkeypatch, input_json=self._with_broken_company(tmp_path))
+		assert "Unknown company 'does-not-exist'" in capsys.readouterr().out
+		assert "does-not-exist" in tex
+
+	def test_unknown_company_omits_its_url_line(self, tmp_path, monkeypatch):
+		# Classic used to print the company URL unconditionally -- a dangling
+		# reference resolved to an empty url and rendered a bare, broken
+		# \href{ }{ } instead of just dropping the line.
+		tex = run_main(tmp_path, monkeypatch, input_json=self._with_broken_company(tmp_path))
+		assert "\\href{  }{  }" not in tex
+
+	def test_unknown_company_strict_fails(self, tmp_path, monkeypatch):
+		with pytest.raises(SystemExit):
+			run_main(tmp_path, monkeypatch, "--strict", input_json=self._with_broken_company(tmp_path))
+
+
 class TestCommitSha:
 	def test_sha_stamped_when_given(self, tmp_path, monkeypatch):
 		tex = run_main(tmp_path, monkeypatch, "--commit-sha", "abc1234")
