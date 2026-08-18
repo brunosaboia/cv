@@ -178,6 +178,9 @@ def main():
 	parser.add_argument("--data-dir", "-d", default=None, help="Directory relative asset paths in the JSON (e.g. the photo) resolve against; defaults to the input file's directory")
 	parser.add_argument("--links", action=argparse.BooleanOptionalAction, default=True,
 		help="Emit clickable PDF link annotations. --no-links keeps the URL as text but drops the annotation, for employers whose systems object to them")
+	parser.add_argument("--company-descriptions", choices=("min", "mid", "max"), default="mid",
+		help="How many employer blurbs to print: min hides every companies[].description, "
+		     "mid (default) hides only a company flagged is_well_known, max shows them all")
 	parser.add_argument("--strict", action="store_true", help="Fail on unknown market, missing rules file, or missing assets instead of warning")
 	args = parser.parse_args()
 
@@ -225,6 +228,17 @@ def main():
 				"short_name": short_name, "name": short_name,
 				"description": "", "url": "", "is_well_known": False,
 			}
+		# The build-wide --company-descriptions level wins over what an
+		# individual company declares about itself: min hides every blurb
+		# regardless, max shows every blurb regardless, and only mid (the
+		# default) defers to companies[].is_well_known. Resolved once here so
+		# every layout's template reads a single flag instead of repeating
+		# this three-way choice in three places.
+		company["show_description"] = {
+			"min": False,
+			"mid": not company.get("is_well_known", False),
+			"max": True,
+		}[args.company_descriptions]
 		entry["company"] = company
 
 	# Absolute so the rendered .tex is independent of pdflatex's working directory.

@@ -6,10 +6,11 @@
 	{\sl {{ item.title | latex_escape }} } \hfill {\sl ({{ parse_duration(item.duration.start, item.duration.end) }})} \\
 	{#- A household name (Google, a national central bank, ...) doesn't need a
 	   blurb explaining what it is; that space is better spent on the role
-	   itself. companies[].is_well_known opts an employer out of printing its
-	   description -- set per-company, since the "is this well known" answer
-	   doesn't change per role. #}
-	{%- if item.company.description and not item.company.is_well_known %}
+	   itself. company.show_description is resolved once in generate_cv.py
+	   from companies[].is_well_known and the build-wide --company-descriptions
+	   level (min/mid/max) -- read the one flag here rather than either input
+	   separately. #}
+	{%- if item.company.description and item.company.show_description %}
 	\\
 	{{ item.company.description | latex_escape }}
 	{%- endif %}

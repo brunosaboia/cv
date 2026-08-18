@@ -10,10 +10,14 @@ LAYOUT ?= classic
 # LINKS=0 keeps every URL as readable text but emits no clickable PDF link
 # annotations, for employers whose systems object to them.
 LINKS ?= 1
+# How many employer blurbs to print: "max" shows every companies[].description,
+# "mid" (default, today's behaviour) hides only a company flagged
+# is_well_known, "min" hides every one regardless.
+COMPANY_DESCRIPTIONS ?= mid
 
 # Default output name carries whatever is non-default, so matrix builds don't
-# overwrite each other: cv, cv-CH, cv-ats, cv-ats-CH, cv-ats-nolinks.
-TARGET ?= cv$(if $(filter-out classic,$(LAYOUT)),-$(LAYOUT))$(if $(filter-out default,$(MARKET)),-$(MARKET))$(if $(filter 0,$(LINKS)),-nolinks)
+# overwrite each other: cv, cv-CH, cv-ats, cv-ats-CH, cv-ats-nolinks, cv-alldesc.
+TARGET ?= cv$(if $(filter-out classic,$(LAYOUT)),-$(LAYOUT))$(if $(filter-out default,$(MARKET)),-$(MARKET))$(if $(filter 0,$(LINKS)),-nolinks)$(if $(filter max,$(COMPANY_DESCRIPTIONS)),-alldesc)$(if $(filter min,$(COMPANY_DESCRIPTIONS)),-nodesc)
 
 OUTDIR ?= out
 SRC_DIR = src
@@ -34,6 +38,7 @@ GENERATOR = $(SRC_DIR)/generate_cv.py
 GEN_FLAGS = --input $(INPUT_JSON) --output $(SOURCE) --template-dir $(TEMPLATE_DIR) \
             --data-dir $(DATA_DIR) --commit-sha $(COMMIT_SHA) \
             --market $(MARKET) --market-rules $(MARKET_RULES) --layout $(LAYOUT) \
+            --company-descriptions $(COMPANY_DESCRIPTIONS) \
             $(if $(filter 0,$(LINKS)),--no-links) \
             $(if $(filter 1,$(STRICT)),--strict)
 ifeq ($(LAYOUT),txt)

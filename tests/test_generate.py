@@ -485,42 +485,62 @@ class TestCompanyResolution:
 
 
 class TestWellKnownCompanies:
-	"""companies[].is_well_known lets a household-name employer (the sample's
-	Swiss National Bank) skip its own blurb, since a reader already knows what
-	it is; a less familiar one (NeuralCore) still needs the explanation. The
-	flag is per-company, not per-role, and only ever touches company.description
-	-- the role's own description (the "my mission was..." text) always prints."""
+	"""companies[].is_well_known marks a household-name employer (the
+	sample's Swiss National Bank); --company-descriptions decides whether a
+	build actually acts on that flag. mid (the default) hides only a
+	well-known company's blurb, like NeuralCore's still needs; max shows
+	every blurb regardless; min hides every blurb regardless. The flag is
+	per-company, not per-role, and only ever touches company.description --
+	the role's own description (the "my mission was..." text) always prints."""
 
 	SNB_BLURB = "central bank of Switzerland"
 	NEURALCORE_BLURB = "machine learning solutions for healthcare"
 
 	@pytest.mark.parametrize("layout", ["classic", "ats", "txt"])
-	def test_well_known_companys_blurb_is_omitted(self, tmp_path, monkeypatch, layout):
+	def test_mid_level_omits_only_the_well_known_blurb(self, tmp_path, monkeypatch, layout):
+		# mid is the default -- no --company-descriptions flag needed here.
 		tex = run_main(tmp_path, monkeypatch, "--layout", layout)
 		assert self.SNB_BLURB not in tex
-
-	@pytest.mark.parametrize("layout", ["classic", "ats", "txt"])
-	def test_unknown_companys_blurb_still_prints(self, tmp_path, monkeypatch, layout):
-		tex = run_main(tmp_path, monkeypatch, "--layout", layout)
 		assert self.NEURALCORE_BLURB in tex
 
-	def test_the_roles_own_description_still_prints_for_a_well_known_company(self, tmp_path, monkeypatch):
-		# Only company.description is gated; item.description (this role's own
-		# text) is unrelated data and must survive regardless of the flag.
-		tex = run_main(tmp_path, monkeypatch)
-		assert "help modernize the bank" in tex
+	@pytest.mark.parametrize("layout", ["classic", "ats", "txt"])
+	def test_max_level_shows_every_blurb(self, tmp_path, monkeypatch, layout):
+		tex = run_main(tmp_path, monkeypatch, "--layout", layout, "--company-descriptions", "max")
+		assert self.SNB_BLURB in tex
+		assert self.NEURALCORE_BLURB in tex
 
-	def test_missing_flag_defaults_to_printing_the_blurb(self, tmp_path, monkeypatch):
+	@pytest.mark.parametrize("layout", ["classic", "ats", "txt"])
+	def test_min_level_hides_every_blurb(self, tmp_path, monkeypatch, layout):
+		tex = run_main(tmp_path, monkeypatch, "--layout", layout, "--company-descriptions", "min")
+		assert self.SNB_BLURB not in tex
+		assert self.NEURALCORE_BLURB not in tex
+
+	def test_the_roles_own_description_always_prints_regardless_of_level(self, tmp_path, monkeypatch):
+		# Only company.description is gated; item.description (this role's own
+		# text) is unrelated data and must survive at every level, including min.
+		for level in ("min", "mid", "max"):
+			tex = run_main(tmp_path, monkeypatch, "--company-descriptions", level)
+			assert "help modernize the bank" in tex
+
+	def test_missing_flag_defaults_to_printing_the_blurb_at_mid(self, tmp_path, monkeypatch):
 		# is_well_known is optional; a company that omits it entirely (as
-		# opposed to declaring it false) must not lose its description --
-		# Jinja's Undefined is falsy, so "not item.company.is_well_known" holds
-		# and the omission alone must not read as "well known".
+		# opposed to declaring it false) must not lose its description at the
+		# default level -- Jinja's Undefined is falsy, so
+		# "not company.get('is_well_known', False)" holds and the omission
+		# alone must not read as "well known".
 		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
 		del data["companies"][0]["is_well_known"]
 		specials = tmp_path / "specials.json"
 		specials.write_text(json.dumps(data), encoding="utf-8")
 		tex = run_main(tmp_path, monkeypatch, input_json=specials)
 		assert self.SNB_BLURB in tex
+
+	def test_unknown_level_is_rejected(self, tmp_path, monkeypatch):
+		# A closed set of levels: argparse validates it up front rather than
+		# warn_or_fail degrading at render time, since there's no sane
+		# "unknown level" fallback the way an unknown market has one.
+		with pytest.raises(SystemExit):
+			run_main(tmp_path, monkeypatch, "--company-descriptions", "nope")
 
 
 REAL_DATA_DIR = REPO_ROOT.parent / "cv-data"
@@ -546,7 +566,8 @@ class TestRealWellKnownCompanies:
 		return json.loads(REAL_DATA.read_text(encoding="utf-8"))["companies"]
 
 	@pytest.mark.parametrize("layout", ["classic", "ats", "txt"])
-	def test_well_known_companies_blurb_is_absent(self, tmp_path, monkeypatch, companies, layout):
+	def test_mid_level_omits_well_known_blurbs(self, tmp_path, monkeypatch, companies, layout):
+		# mid is the default -- what every deployed build actually uses today.
 		tex = run_main(
 			tmp_path, monkeypatch,
 			"--layout", layout, "--data-dir", str(REAL_DATA_DIR),
@@ -557,6 +578,28 @@ class TestRealWellKnownCompanies:
 			if c.get("is_well_known") and c.get("description") and c["description"] in tex
 		]
 		assert not leaked, f"{layout}: blurb leaked into the build for {leaked}"
+
+	def test_max_level_shows_a_well_known_blurb(self, tmp_path, monkeypatch, companies):
+		# Proves the override actually reaches the real data, not just the
+		# sample: --company-descriptions max must surface a blurb mid hides.
+		well_known = next((c for c in companies if c.get("is_well_known") and c.get("description")), None)
+		if well_known is None:
+			pytest.skip("no well-known company with a description in the real data")
+		tex = run_main(
+			tmp_path, monkeypatch,
+			"--data-dir", str(REAL_DATA_DIR), "--company-descriptions", "max",
+			input_json=REAL_DATA,
+		)
+		assert well_known["description"] in tex
+
+	def test_min_level_hides_every_real_blurb(self, tmp_path, monkeypatch, companies):
+		tex = run_main(
+			tmp_path, monkeypatch,
+			"--data-dir", str(REAL_DATA_DIR), "--company-descriptions", "min",
+			input_json=REAL_DATA,
+		)
+		leaked = [c["name"] for c in companies if c.get("description") and c["description"] in tex]
+		assert not leaked, f"blurb leaked at min level for {leaked}"
 
 
 class TestCommitSha:
