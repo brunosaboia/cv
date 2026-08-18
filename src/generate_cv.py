@@ -188,6 +188,15 @@ def main():
 		available = ", ".join(available_layouts(args.template_dir)) or "none"
 		sys.exit(f"❌ Unknown layout '{args.layout}' in {args.template_dir}; available: {available}")
 
+	# LINKS only controls PDF link annotations, and the txt layout has no PDF at
+	# all — no txt template even reads the links global, so --no-links changes
+	# nothing in its output. It is not an error, but it is almost never a
+	# deliberate request: the flag usually arrives as a habit carried over from
+	# a PDF layout, and silently doing nothing while claiming to have done
+	# something is exactly the failure mode this codebase warns about.
+	if args.layout == "txt" and not args.links:
+		print("⚠️ --no-links (LINKS=0) has no effect on the txt layout; its output is already plain text")
+
 	# Load JSON data
 	with open(args.input, encoding="utf-8") as f:
 		data = json.load(f)

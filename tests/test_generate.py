@@ -310,6 +310,19 @@ class TestLinks:
 		assert "{Transcript of records}" in tex
 		assert "\\weburl" not in tex
 
+	def test_txt_no_links_warns_it_is_a_noop(self, tmp_path, monkeypatch, capsys):
+		# txt has no PDF and no template reads the links global, so --no-links
+		# changes nothing in its output; a warning catches the invocation that
+		# carried the flag over from a PDF layout out of habit.
+		run_main(tmp_path, monkeypatch, "--layout", "txt", "--no-links")
+		assert "--no-links" in capsys.readouterr().out
+
+	def test_pdf_layouts_do_not_warn_for_no_links(self, tmp_path, monkeypatch, capsys):
+		# The flag is meaningful (and consumed) for the PDF layouts, so it must
+		# not raise the no-op warning there.
+		run_main(tmp_path, monkeypatch, "--layout", "ats", "--no-links")
+		assert "--no-links" not in capsys.readouterr().out
+
 
 class TestClassicEscaping:
 	"""Every text field the classic layout prints has to go through
