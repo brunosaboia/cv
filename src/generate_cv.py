@@ -199,6 +199,25 @@ def main():
 	if isinstance(data.get("personal"), dict):
 		data["personal"]["nationality"] = parse_nationality(data["personal"].get("nationality"))
 
+	# Companies are declared once in a top-level list and referenced from each
+	# experience entry by short_name, so the same employer isn't duplicated
+	# when it appears in more than one role. Resolve the reference here so
+	# every template just reads item.company.name/.url/.description.
+	companies = {c["short_name"]: c for c in data.get("companies", [])}
+	for entry in data.get("experience", []):
+		short_name = entry.get("company")
+		company = companies.get(short_name)
+		if company is None:
+			warn_or_fail(
+				f"Unknown company '{short_name}' referenced in experience (no matching companies[].short_name)",
+				args.strict, "; using the short_name as a literal display name",
+			)
+			company = {
+				"short_name": short_name, "name": short_name,
+				"description": "", "url": "", "is_well_known": False,
+			}
+		entry["company"] = company
+
 	# Absolute so the rendered .tex is independent of pdflatex's working directory.
 	data_dir = os.path.abspath(args.data_dir) if args.data_dir else os.path.dirname(os.path.abspath(args.input))
 

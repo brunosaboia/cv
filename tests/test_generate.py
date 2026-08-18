@@ -319,10 +319,11 @@ class TestClassicEscaping:
 
 	SENTINEL = "R&D 100%"
 	ESCAPED = r"R\&D 100\%"
-	# phone, address.street, nationality, 4 experience fields, 4 education
-	# fields, 2 award fields, 1 certification field -- plus the name, which
-	# classic prints twice (the pdftitle metadata and the visible heading).
-	INJECTIONS = 16
+	# phone, address.street, nationality, 3 experience fields, 2 company
+	# fields, 4 education fields, 2 award fields, 1 certification field --
+	# plus the name, which classic prints twice (the pdftitle metadata and
+	# the visible heading).
+	INJECTIONS = 17
 
 	@pytest.fixture
 	def tex(self, tmp_path, monkeypatch):
@@ -331,7 +332,9 @@ class TestClassicEscaping:
 		data["personal"]["phone"] = self.SENTINEL
 		data["personal"]["nationality"] = self.SENTINEL
 		data["personal"]["address"]["street"] = self.SENTINEL
-		for field in ("company", "location", "title", "description"):
+		data["companies"][0]["name"] = self.SENTINEL
+		data["companies"][0]["description"] = self.SENTINEL
+		for field in ("location", "title", "description"):
 			data["experience"][0][field] = self.SENTINEL
 		for field in ("institution", "location", "degree", "field"):
 			data["education"][0][field] = self.SENTINEL
@@ -359,7 +362,7 @@ class TestClassicEscaping:
 	@pytest.mark.parametrize("layout", ["ats", "txt"])
 	def test_the_other_layouts_were_already_safe(self, tmp_path, monkeypatch, layout):
 		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
-		data["experience"][0]["company"] = self.SENTINEL
+		data["companies"][0]["name"] = self.SENTINEL
 		specials = tmp_path / "specials.json"
 		specials.write_text(json.dumps(data), encoding="utf-8")
 		tex = run_main(tmp_path, monkeypatch, "--layout", layout, input_json=specials)

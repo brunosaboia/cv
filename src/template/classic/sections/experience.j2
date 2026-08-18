@@ -1,7 +1,11 @@
 {% for item in experience %}
-	{\bf {{ item.company | latex_escape }}}, {\sl {{ item.location | latex_escape }}} \hfill {\sl {{ item.duration.start | as_date(fmt_month_year) }} -- {{ item.duration.end | as_date(fmt_month_year) }}} \\
-	{\sl — {% if links %}\href{ {{ item.url }} }{ {{ item.url }} }{% else %}\weburl{ {{- item.url -}} }{% endif %}} \\
+	{\bf {{ item.company.name | latex_escape }}}, {\sl {{ item.location | latex_escape }}} \hfill {\sl {{ item.duration.start | as_date(fmt_month_year) }} -- {{ item.duration.end | as_date(fmt_month_year) }}} \\
+	{\sl — {% if links %}\href{ {{ item.company.url }} }{ {{ item.company.url }} }{% else %}\weburl{ {{- item.company.url -}} }{% endif %}} \\
 	{\sl {{ item.title | latex_escape }} } \hfill {\sl ({{ parse_duration(item.duration.start, item.duration.end) }})} \\
+	{%- if item.company.description %}
+	\\
+	{{ item.company.description | latex_escape }}
+	{%- endif %}
 	{%- if item.description %}
 	\\
 	{{ item.description | latex_escape }}

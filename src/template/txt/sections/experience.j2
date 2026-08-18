@@ -1,9 +1,13 @@
 {% for item in experience %}
-{{ item.company }}{% if item.location %}, {{ item.location }}{% endif +%}
+{{ item.company.name }}{% if item.location %}, {{ item.location }}{% endif +%}
 {{ item.title }}
 {{ item.duration.start | as_date(fmt_month_year) }} - {{ item.duration.end | as_date(fmt_month_year) }} ({{ parse_duration(item.duration.start, item.duration.end) }})
-{% if item.url %}
-{{ item.url }}
+{% if item.company.url %}
+{{ item.company.url }}
+{% endif %}
+{% if item.company.description %}
+
+{{ item.company.description }}
 {% endif %}
 {% if item.description %}
 

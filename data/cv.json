@@ -30,16 +30,38 @@
 		"photo": "profile.png"
 	},
 	"summary": "AI/ML engineer with 8+ years of experience across finance and healthcare, specialized in taking machine-learning systems from research to regulated production environments.",
+	"companies": [
+		{
+			"short_name": "snb",
+			"name": "Swiss National Bank",
+			"description": "The Swiss National Bank (SNB) is the central bank of Switzerland.",
+			"url": "https://snb.ch",
+			"is_well_known": true
+		},
+		{
+			"short_name": "neuralcore",
+			"name": "NeuralCore AG",
+			"description": "NeuralCore is a Swiss startup focusing on machine learning solutions for healthcare.",
+			"url": "https://neuralcore.ch",
+			"is_well_known": false
+		},
+		{
+			"short_name": "globaltech",
+			"name": "GlobalTech Solutions",
+			"description": "GlobalTech provides B2B software solutions to clients in the financial industry.",
+			"url": "https://globaltech.co.uk",
+			"is_well_known": false
+		}
+	],
 	"experience": [
 		{
-			"company": "Swiss National Bank",
+			"company": "snb",
 			"location": "Zürich, CH",
-			"url": "https://snb.ch",
 			"title": "AI Infrastructure Engineer",
 			"duration": {
 				"start": "2023-06-01"
 			},
-			"description": "The Swiss National Bank (SNB) is the central bank of Switzerland.",
+			"description": "My mission was to help modernize the bank's internal reporting tools.",
 			"achievements": [
 				"Developed and deployed AI-based financial forecasting models across distributed systems",
 				"Ensured model compliance with regulatory frameworks, passing two internal audits with zero findings",
@@ -55,15 +77,14 @@
 			]
 		},
 		{
-			"company": "NeuralCore AG",
+			"company": "neuralcore",
 			"location": "Bern, CH",
-			"url": "https://neuralcore.ch",
 			"title": "Machine Learning Engineer",
 			"duration": {
 				"start": "2021-01-01",
 				"end": "2023-06-01"
 			},
-			"description": "NeuralCore is a Swiss startup focusing on machine learning solutions for healthcare.",
+			"description": "My mission was to build the core diagnostic models used by hospital partners.",
 			"achievements": [
 				"Built end-to-end pipelines for processing medical imaging data",
 				"Designed anomaly-detection models for MRI scans, cutting radiologist review time by 20%"
@@ -71,15 +92,14 @@
 			"technologies": ["PyTorch", "FastAPI", "PostgreSQL", "DVC", "MLflow"]
 		},
 		{
-			"company": "GlobalTech Solutions",
+			"company": "globaltech",
 			"location": "Remote (CH -- UK)",
-			"url": "https://globaltech.co.uk",
 			"title": "Software Engineer",
 			"duration": {
 				"start": "2018-09-01",
 				"end": "2020-12-01"
 			},
-			"description": "GlobalTech provides B2B software solutions to clients in the financial industry.",
+			"description": "My mission was to lead integration work with GlobalTech's largest financial clients.",
 			"achievements": [
 				"Developed secure REST APIs in a cross-functional team of eight",
 				"Built internal web dashboards for financial data visualization"
