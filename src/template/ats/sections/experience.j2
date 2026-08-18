@@ -8,7 +8,7 @@
 
 {{ item.title | latex_escape }}
 
-{{ item.duration.start | as_date(fmt_month_year) }} - {{ item.duration.end | as_date(fmt_month_year) }} ({{ parse_duration(item.duration.start, item.duration.end) }})
+{{ item.duration.start | as_date(fmt_month_year) }} - {{ item.duration.end | as_date(fmt_month_year) }}
 {% if item.company.url %}
 \weburl{ {{- item.company.url -}} }
 {% endif %}

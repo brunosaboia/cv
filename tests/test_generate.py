@@ -11,9 +11,10 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # The sample's current role is open-ended, so parse_duration measures it against
 # today and the rendered string grows by a month every month. Match its shape,
-# not one month's arithmetic: what these assertions are about is the date line
-# staying next to the employer it belongs to, which is time-invariant.
-ONGOING_DATES = re.compile(r"June 2023 - Present \(\d+ years?(?:, \d+ months?)?\)")
+# not one month's arithmetic. Only classic prints this parenthetical at all
+# (see TestClassicLayout) -- ats/txt deliberately omit it, see their layout
+# test classes below.
+ONGOING_DURATION = re.compile(r"\{\\sl \(\d+ years?(?:, \d+ months?)?\)\}")
 
 
 def run_main(tmp_path, monkeypatch, *extra_args, input_json=None):
@@ -143,6 +144,17 @@ class TestLayouts:
 		assert available_layouts(str(tmp_path / "nowhere")) == []
 
 
+class TestClassicLayout:
+	"""classic is the human-facing layout: unlike ats/txt, it keeps the
+	computed "(X years, Y months)" next to the date range as a readability
+	aid, since a person reading the PDF benefits from it in a way a parser
+	that already has both exact dates does not."""
+
+	def test_dates_include_the_computed_duration(self, tmp_path, monkeypatch):
+		tex = run_main(tmp_path, monkeypatch)
+		assert ONGOING_DURATION.search(tex)
+
+
 class TestAtsLayoutIsParseable:
 	"""The properties an ATS layout exists for: everything a résumé scanner
 	reads back out of the PDF text layer has to survive extraction."""
@@ -180,7 +192,10 @@ class TestAtsLayoutIsParseable:
 
 	def test_dates_stay_next_to_their_employer(self, tex):
 		assert "Swiss National Bank, Zürich, CH" in tex
-		assert ONGOING_DATES.search(tex)
+		# ats prints the bare start/end range, unlike classic/txt: an ATS parser
+		# computes tenure itself from the two dates, so the appended "(X years,
+		# Y months)" is redundant text a parser might misread as its own field.
+		assert "June 2023 - Present" in tex
 
 	def test_labelled_contact_fields(self, tex):
 		assert "Email: " in tex
@@ -222,9 +237,12 @@ class TestTxtLayout:
 			assert heading in txt
 
 	def test_dates_stay_next_to_their_employer(self, txt):
+		# Like ats: the reader already has both dates and can work out tenure
+		# itself, so the exact line has no "(X years, Y months)" suffix -- that
+		# readability aid is classic's job.
 		lines = txt.splitlines()
 		company_line = next(i for i, l in enumerate(lines) if l.startswith("Swiss National Bank"))
-		assert ONGOING_DATES.search(lines[company_line + 2])
+		assert lines[company_line + 2] == "June 2023 - Present"
 
 	def test_labelled_contact_fields(self, txt):
 		assert "Email: john.doe@example.com" in txt

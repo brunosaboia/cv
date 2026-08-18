@@ -1,7 +1,10 @@
 {% for item in experience %}
 {{ item.company.name }}{% if item.location %}, {{ item.location }}{% endif +%}
 {{ item.title }}
-{{ item.duration.start | as_date(fmt_month_year) }} - {{ item.duration.end | as_date(fmt_month_year) }} ({{ parse_duration(item.duration.start, item.duration.end) }})
+{# No computed duration here, matching ats: a plain-text/ATS reader already
+   has both dates and can work out tenure itself; the "(X years, Y months)"
+   is a readability aid for a human, which is what classic is for. #}
+{{ item.duration.start | as_date(fmt_month_year) }} - {{ item.duration.end | as_date(fmt_month_year) }}
 {% if item.company.url %}
 {{ item.company.url }}
 {% endif %}
