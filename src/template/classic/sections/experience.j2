@@ -3,7 +3,7 @@
 	{%- if item.company.url %}
 	{\sl — {% if links %}\href{ {{ item.company.url }} }{ {{ item.company.url }} }{% else %}\weburl{ {{- item.company.url -}} }{% endif %}} \\
 	{%- endif %}
-	{\sl {{ item.title | latex_escape }} } \hfill {\sl ({{ parse_duration(item.duration.start, item.duration.end) }})} \\
+	{\sl {{ item.title | latex_escape }} } \hfill {\sl ({{ parse_duration(item.duration.start, item.duration.end) }})} \\[\cvsubitemskip]
 	{#- A household name (Google, a national central bank, ...) doesn't need a
 	   blurb explaining what it is; that space is better spent on the role
 	   itself. company.show_description is resolved once in generate_cv.py

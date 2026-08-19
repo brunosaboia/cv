@@ -52,7 +52,59 @@
 % nothing: a new section reads as just another paragraph. Doubling it to
 % 2\baselineskip (the same ratio the ats layout uses between \cvsection's
 % \addvspace and its own \parskip) is enough to read as a section break.
-\sectionskip=2\baselineskip plus 6pt minus 3pt
+% This is also the "section" gap of the three below -- kept unchanged.
+\newskip\cvsectionskip
+\cvsectionskip=2\baselineskip plus 6pt minus 3pt
+
+% Four independently tunable gaps, smallest to largest: \cvsubitemskip between
+% an entry's own header (employer/title/dates) and its body (e.g. the role
+% description or achievement bullets), \cvitemskip between entries within a
+% section (e.g. each role in Experience, each degree in Education),
+% \cvheaderskip between the contact header and the first section,
+% \cvsectionskip (above) between one section and the next. \section always
+% reads res.cls's own \sectionskip register at call time, so the header/for
+% loop below swaps its value to \cvheaderskip only for the very first section.
+\newskip\cvsubitemskip
+\newskip\cvitemskip
+\newskip\cvheaderskip
+% Negative: an entry's header-to-body break is a plain \\ within the same
+% paragraph, which already costs a full \baselineskip with no \parskip on top
+% (unlike \cvitemskip below, which adds to one). Trimming it below that
+% default is what keeps it visibly tighter than the item-to-item gap even
+% though \cvitemskip itself is a small addition.
+\cvsubitemskip=-0.3\baselineskip
+\cvitemskip=0.4\baselineskip plus 2pt minus 1pt
+\cvheaderskip=1.2\baselineskip plus 3pt minus 2pt
+\sectionskip=\cvsectionskip
+
+% Item-to-item separation (each role in Experience, each degree in Education)
+% is an ordinary blank-line paragraph break in those templates, so it is
+% \parskip -- not \sectionskip -- that drives it. res.cls sets \parskip to a
+% full \baselineskip (see above); lowering the register itself to \cvitemskip
+% is what actually shrinks that gap. A local override (e.g. \vskip-\parskip
+% mid-item) can't work here: there is no real \par at that point to attach
+% to, since each item is one long \\-broken paragraph, not its own paragraph.
+\parskip=\cvitemskip
+
+% Bullet-to-bullet spacing inside every \itemize (achievements, awards,
+% certifications, skills, ...) comes from \parsep/\itemsep, which res.cls's
+% own \@listI sets to 2pt -- already smaller than a paragraph break, but still
+% loose against the compact rhythm above. Redefined here, once, rather than
+% per list.
+\newskip\cvbulletskip
+\cvbulletskip=1pt plus 1pt minus 0.5pt
+% @ is catcode "other" outside a class/package file, so \@listI would
+% otherwise not parse as one control word -- makeatletter/other scope this to
+% just the redefinition.
+\makeatletter
+\def\@listI{\leftmargin\leftmargini
+	\topsep 0pt
+	\parskip 0pt
+	\partopsep 2pt plus 2pt
+	\parsep \cvbulletskip
+	\itemsep \parsep}
+\let\@listi\@listI
+\makeatother
 
 {% set fmt_year = "%Y" %}
 {% set fmt_month_year = "%B %Y" %}
@@ -81,9 +133,17 @@
 
 	\begin{resume}
 
+{% set ns = namespace(first_section=true) %}
 {% for section in headers %}
 	{% if section %}
+		{% if ns.first_section %}
+		\sectionskip=\cvheaderskip
 		\section{ {{ section | title }} }
+		\sectionskip=\cvsectionskip
+		{% set ns.first_section = false %}
+		{% else %}
+		\section{ {{ section | title }} }
+		{% endif %}
 		{% include "sections/" ~ section ~ ".j2" with context %}
 	{% endif %}
 {% endfor %}
