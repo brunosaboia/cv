@@ -57,8 +57,3 @@ GitHub: {{ personal.github }}
 
 {% endif %}
 {% endfor %}
-{{ "-" * 62 }}
-Last updated at {{ now.strftime('%Y-%m-%d') }}. The most recent copy can be found at {{ personal.cv_url }}.
-{% if commit_sha %}
-Generated with https://github.com/brunosaboia/cv, commit {{ commit_sha }}.
-{% endif %}

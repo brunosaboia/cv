@@ -166,16 +166,4 @@ GitHub: \weburl{ {{- personal.github -}} }
 	{% endif %}
 {% endfor %}
 
-% End matter stays in the normal text flow rather than being pushed to the foot
-% of the page, so it is never mistaken for a page footer and dropped.
-\par\addvspace{1.1\baselineskip}
-\hrule height 0.4pt\relax
-\vspace{0.35\baselineskip}
-{\footnotesize
-Last updated at {{ now.strftime('%Y-%m-%d') }}. The most recent copy can be found at \weburl{ {{- personal.cv_url -}} }.
-{%- if commit_sha %}\\
-Generated with \weburl{https://github.com/brunosaboia/cv}, commit {{ commit_sha | latex_escape }}.
-{%- endif %}
-}
-
 \end{document}
