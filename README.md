@@ -34,7 +34,7 @@ Everything a pipeline needs is parametrized (via `make` variables or environment
 | `TARGET` | `cv`, plus `-$(LAYOUT)`, `-$(MARKET)`, `-nolinks`, `-alldesc`/`-nodesc` when non-default | Output base name — no two builds overwrite each other |
 | `OUTDIR` | `out` | Output directory |
 | `STRICT` | `0` | `1` fails on unknown market or missing files instead of degrading gracefully |
-| `COMMIT_SHA` | `git rev-parse` | Stamp embedded in the PDF; CI can inject its own |
+| `COMMIT_SHA` | `git rev-parse` | Stamp embedded in `classic`'s footer; CI can inject its own — `ats`/`txt` carry no footer |
 
 `make prod-build` is the CI entry point: it syncs dependencies with `uv sync --frozen` (the lockfile is authoritative) and builds with `STRICT=1`. Typical pipeline invocation:
 
