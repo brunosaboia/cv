@@ -26,12 +26,13 @@ Everything a pipeline needs is parametrized (via `make` variables or environment
 |----------|---------|---------|
 | `DATA_DIR` | `data` | Directory holding `cv.json` and its assets (e.g. the photo, referenced in the JSON relative to this dir) |
 | `INPUT_JSON` | `$(DATA_DIR)/cv.json` | The CV data file |
-| `MARKET` | `default` | Target market code (`CH`, `BR`, …) selecting presentation rules |
+| `MARKET` | `international` | Target market (`switzerland`, `continental_europe`, `international`) selecting presentation rules |
 | `MARKET_RULES` | `config/market_rules.json` | Presentation rules; the in-repo file is the default, override if needed |
 | `LAYOUT` | `classic` | Which rendering to produce — `classic`, `ats`, or `txt` (see below) |
 | `LINKS` | `1` | `0` emits no clickable link annotations, keeping every URL as text (see below) |
 | `COMPANY_DESCRIPTIONS` | `mid` | `min`/`mid`/`max` — how many employer blurbs to print (see below) |
-| `TARGET` | `cv`, plus `-$(LAYOUT)`, `-$(MARKET)`, `-nolinks`, `-alldesc`/`-nodesc` when non-default | Output base name — no two builds overwrite each other |
+| `RULES_OVERRIDE` | *(empty)* | Ad-hoc `key=value,key=value` flag overrides applied after `MARKET` and `LAYOUT`'s own rules, e.g. `show_photo=false,show_address=true` (see below) |
+| `TARGET` | `cv`, plus `-$(LAYOUT)`, `-$(MARKET)`, `-nolinks`, `-alldesc`/`-nodesc`, `-custom` when non-default | Output base name — no two builds overwrite each other |
 | `OUTDIR` | `out` | Output directory |
 | `STRICT` | `0` | `1` fails on unknown market or missing files instead of degrading gracefully |
 | `COMMIT_SHA` | `git rev-parse` | Stamp embedded in `classic`'s footer; CI can inject its own — `ats`/`txt` carry no footer |
@@ -39,25 +40,33 @@ Everything a pipeline needs is parametrized (via `make` variables or environment
 `make prod-build` is the CI entry point: it syncs dependencies with `uv sync --frozen` (the lockfile is authoritative) and builds with `STRICT=1`. Typical pipeline invocation:
 
 ```sh
-make prod-build DATA_DIR=/path/to/cv-data MARKET=CH
+make prod-build DATA_DIR=/path/to/cv-data MARKET=switzerland
 ```
 
 ## Market rules
-`config/market_rules.json` holds one object per market code, merged over `default`, so an entry only spells out what differs. Templates read each flag with `market.get("flag", true)` — a missing rules file or an unknown market degrades to showing everything rather than producing an empty CV — so the `default` entry states every flag explicitly to keep that fallback from leaking personal fields into a conservative build.
+`config/market_rules.json` holds a `"markets"` object, one fully-spelled-out flag set per named market, plus a `"default_market"` key naming which one applies when `--market`/`MARKET` is omitted or unrecognized. Templates read each flag with `market.get("flag", true)` — a missing rules file or an unknown market degrades to showing everything rather than producing an empty CV — so every market entry states each flag explicitly to keep that fallback from leaking personal fields into a conservative build.
 
-| Flag | `default` | `CH`, `DE` | `BR`, `US`, `UK` | Controls |
-|------|:---------:|:----------:|:----------------:|----------|
-| `show_photo` | ✗ | ✓ | ✗ | `personal.photo` |
-| `show_dob` | ✗ | ✓ | ✗ | `personal.dob` |
-| `show_address` | ✗ | ✓ | ✗ | `personal.address` |
-| `show_nationality` | ✗ | ✓ | ✗ | `personal.nationality` |
+| Flag | `international` (default) | `continental_europe`, `switzerland` | Controls |
+|------|:--------------------------:|:------------------------------------:|----------|
+| `show_photo` | ✗ | ✓ | `personal.photo` |
+| `show_dob` | ✗ | ✓ | `personal.dob` |
+| `show_address` | ✗ | ✓ | `personal.address` |
+| `show_nationality` | ✗ | ✓ | `personal.nationality` |
 
-A layout can veto a market: `LAYOUT_RULE_OVERRIDES` in `src/generate_cv.py` is applied after the market rules, which is how `ats` and `txt` stay photo-free even when built for `CH`.
+A layout can veto a market: `LAYOUT_RULE_OVERRIDES` in `src/generate_cv.py` is applied after the market rules, which is how `ats` and `txt` stay photo-free even when built for `switzerland`.
+
+For a one-off build that doesn't warrant a whole named market, `RULES_OVERRIDE`/`--rules-override` flips individual flags directly from the command line, applied last so it wins over both the market and the layout:
+
+```sh
+make build MARKET=switzerland RULES_OVERRIDE='show_photo=false'
+```
+
+An unknown flag name or a value other than `true`/`false` warns and is skipped (or fails under `--strict`), the same convention as an unknown market. A missing `market_rules.json` doesn't block a `RULES_OVERRIDE`-only build either — it degrades to showing everything, same as without an override, and the override still applies on top.
 
 ## Language levels
 `languages[].level` in the data is our own scale, not a display string: `0` native, `1` fluent, `2` advanced, `3` intermediate, `4` basic. `generate_cv.py` translates it to a display string once, per market, before any template sees it — so unlike a market rule, there's no flag for a template to read:
 
-| Level | `default`, `BR`, `US`, `UK` | `CH`, `DE` |
+| Level | `international` | `continental_europe`, `switzerland` |
 |:-----:|------|:----------:|
 | `0` | Native | Native |
 | `1` | Full professional proficiency | C2 |
@@ -68,7 +77,7 @@ A layout can veto a market: `LAYOUT_RULE_OVERRIDES` in `src/generate_cv.py` is a
 CEFR has six tiers (A1–C2) to our four non-native ones, so the mapping skips A1 and C1 rather than cluster at either end of the scale; native is kept as its own label on both sides rather than folded into C2, since a mother tongue isn't a CEFR tier at all. A level outside `0`–`4` warns and prints the raw value (or fails under `--strict`) rather than guessing.
 
 ## Layouts
-`MARKET` decides *what* is shown; `LAYOUT` decides *how* it is rendered. The two are independent and compose, so `LAYOUT=ats MARKET=CH` is a thing you can build. Each layout is a self-contained directory under `src/template/` holding a root `cv.j2` and its own `sections/`.
+`MARKET` decides *what* is shown; `LAYOUT` decides *how* it is rendered. The two are independent and compose, so `LAYOUT=ats MARKET=switzerland` is a thing you can build. Each layout is a self-contained directory under `src/template/` holding a root `cv.j2` and its own `sections/`.
 
 | Layout | Output | For |
 |--------|--------|-----|
@@ -77,9 +86,9 @@ CEFR has six tiers (A1–C2) to our four non-native ones, so the mapping skips A
 | `txt` | `out/cv-txt.txt` | Plain text, no PDF step at all — for portals that take a `.txt` upload, or whose PDF extraction can't be trusted |
 
 ```sh
-make build LAYOUT=ats            # -> out/cv-ats.pdf
-make build LAYOUT=ats MARKET=CH  # -> out/cv-ats-CH.pdf
-make build LAYOUT=txt            # -> out/cv-txt.txt
+make build LAYOUT=ats                     # -> out/cv-ats.pdf
+make build LAYOUT=ats MARKET=switzerland  # -> out/cv-ats-switzerland.pdf
+make build LAYOUT=txt                     # -> out/cv-txt.txt
 ```
 
 ### Why a separate ATS layout

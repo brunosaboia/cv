@@ -51,19 +51,19 @@ class TestMarkets:
 		# undeclared flag would silently mean "show it" and leak nationality
 		# into every market. It has to be spelled out in the rules file.
 		rules = json.loads((REPO_ROOT / "config" / "market_rules.json").read_text(encoding="utf-8"))
-		assert rules["default"]["show_nationality"] is False
-		assert rules["CH"]["show_nationality"] is True
+		assert rules["markets"]["international"]["show_nationality"] is False
+		assert rules["markets"]["switzerland"]["show_nationality"] is True
 
 	def test_every_declared_rule_is_read_by_a_template(self):
 		# A flag nobody reads is dead configuration that reads as a feature.
 		templates = (REPO_ROOT / "src" / "template").rglob("*.j2")
 		rendered_by = "\n".join(t.read_text(encoding="utf-8") for t in templates)
 		rules = json.loads((REPO_ROOT / "config" / "market_rules.json").read_text(encoding="utf-8"))
-		declared = {flag for market in rules.values() for flag in market}
+		declared = {flag for market in rules["markets"].values() for flag in market}
 		assert {flag for flag in declared if flag not in rendered_by} == set()
 
 	def test_ch_market_shows_everything(self, tmp_path, monkeypatch):
-		tex = run_main(tmp_path, monkeypatch, "--market", "CH")
+		tex = run_main(tmp_path, monkeypatch, "--market", "switzerland")
 		photo = REPO_ROOT / "data" / "profile.png"
 		assert f"\\includegraphics[width=1in]{{{photo}}}" in tex
 		assert photo.is_absolute()
@@ -72,7 +72,7 @@ class TestMarkets:
 		assert "Nationality:" in tex
 
 	def test_br_market_hides_photo_dob_address(self, tmp_path, monkeypatch):
-		tex = run_main(tmp_path, monkeypatch, "--market", "BR")
+		tex = run_main(tmp_path, monkeypatch, "--market", "international")
 		assert "includegraphics" not in tex
 		assert "Date of birth:" not in tex
 		assert "Address:" not in tex
@@ -112,7 +112,7 @@ class TestNationalities:
 		data["personal"]["nationality"] = ["Swiss", "Italian"]
 		specials = tmp_path / "specials.json"
 		specials.write_text(json.dumps(data), encoding="utf-8")
-		tex = run_main(tmp_path, monkeypatch, "--market", "CH", input_json=specials)
+		tex = run_main(tmp_path, monkeypatch, "--market", "switzerland", input_json=specials)
 		assert "Nationality: Swiss, Italian" in tex
 
 
@@ -215,7 +215,7 @@ class TestAtsLayoutIsParseable:
 		minimal_json = tmp_path / "minimal.json"
 		minimal_json.write_text(json.dumps(minimal), encoding="utf-8")
 
-		tex = run_main(tmp_path, monkeypatch, "--layout", "ats", "--market", "CH", input_json=minimal_json)
+		tex = run_main(tmp_path, monkeypatch, "--layout", "ats", "--market", "switzerland", input_json=minimal_json)
 		assert "LinkedIn" not in tex
 		assert re.search(r"\\\\\s*\n\s*\n", tex) is None
 
@@ -253,7 +253,7 @@ class TestTxtLayout:
 		assert "GitHub: https://github.com/johndoe" in txt
 
 	def test_no_photo_even_for_a_photo_market(self, tmp_path, monkeypatch):
-		txt = run_main(tmp_path, monkeypatch, "--layout", "txt", "--market", "CH")
+		txt = run_main(tmp_path, monkeypatch, "--layout", "txt", "--market", "switzerland")
 		assert "Address: " in txt
 		assert "Date of birth: " in txt
 
@@ -317,18 +317,18 @@ class TestLanguagesSection:
 
 class TestLanguageLevels:
 	"""languages[].level is our own scale (0 native .. 4 basic), translated to
-	a display string per market: CEFR letters for CH/DE, the descriptive
-	wording every other market (and the data itself, before this scale
-	existed) already used. Sample data: English=0, French=1, German=2."""
+	a display string per market: CEFR letters for switzerland/continental_europe,
+	the descriptive wording every other market (and the data itself, before
+	this scale existed) already used. Sample data: English=0, French=1, German=2."""
 
-	@pytest.mark.parametrize("market", ["default", "BR", "US", "UK"])
+	@pytest.mark.parametrize("market", ["international"])
 	def test_non_european_markets_use_the_descriptive_wording(self, tmp_path, monkeypatch, market):
 		tex = run_main(tmp_path, monkeypatch, "--market", market)
 		assert "English — Native" in tex
 		assert "French — Full professional proficiency" in tex
 		assert "German — Professional working proficiency" in tex
 
-	@pytest.mark.parametrize("market", ["CH", "DE"])
+	@pytest.mark.parametrize("market", ["switzerland", "continental_europe"])
 	def test_ch_de_use_cefr_letters(self, tmp_path, monkeypatch, market):
 		tex = run_main(tmp_path, monkeypatch, "--market", market)
 		assert "English — Native" in tex  # native has no CEFR letter
@@ -375,7 +375,7 @@ class TestLinks:
 		# \href is the only thing that emits a PDF link annotation, so one
 		# unguarded call anywhere in a section template silently defeats the
 		# whole option -- which is exactly how experience.j2 was first missed.
-		tex = run_main(tmp_path, monkeypatch, "--layout", layout, "--market", "CH", "--no-links")
+		tex = run_main(tmp_path, monkeypatch, "--layout", layout, "--market", "switzerland", "--no-links")
 		assert "\\href" not in strip_latex_comments(tex)
 
 	def test_classic_no_links_promotes_labelled_urls_to_text(self, tmp_path, monkeypatch):
@@ -451,7 +451,7 @@ class TestClassicEscaping:
 		specials.write_text(json.dumps(data), encoding="utf-8")
 		return run_main(
 			tmp_path, monkeypatch,
-			"--layout", "classic", "--market", "CH",
+			"--layout", "classic", "--market", "switzerland",
 			"--data-dir", str(REPO_ROOT / "data"),
 			input_json=specials,
 		)
@@ -487,7 +487,7 @@ class TestPdfMetadata:
 
 class TestLayoutRuleOverrides:
 	def test_ats_drops_the_photo_even_for_a_photo_market(self, tmp_path, monkeypatch):
-		tex = run_main(tmp_path, monkeypatch, "--layout", "ats", "--market", "CH")
+		tex = run_main(tmp_path, monkeypatch, "--layout", "ats", "--market", "switzerland")
 		assert "includegraphics" not in tex
 		# The rest of the market's rules still apply.
 		assert "Address: " in tex
@@ -498,31 +498,76 @@ class TestLayoutRuleOverrides:
 		empty_data_dir.mkdir()
 		run_main(
 			tmp_path, monkeypatch,
-			"--layout", "ats", "--market", "CH",
+			"--layout", "ats", "--market", "switzerland",
 			"--data-dir", str(empty_data_dir), "--strict",
 		)
 		assert "Photo not found" not in capsys.readouterr().out
+
+
+class TestRulesOverride:
+	def test_override_flips_a_single_flag_and_leaves_the_rest(self, tmp_path, monkeypatch):
+		tex = run_main(tmp_path, monkeypatch, "--market", "switzerland", "--rules-override", "show_photo=false")
+		assert "includegraphics" not in tex
+		assert "Address: " in tex
+		assert "Date of birth: " in tex
+
+	def test_override_wins_over_layout_override(self, tmp_path, monkeypatch):
+		# ats normally forces show_photo=False (LAYOUT_RULE_OVERRIDES), which is
+		# also why --strict doesn't demand a photo file for it (see
+		# TestLayoutRuleOverrides). Overriding it back to True should make
+		# --strict demand the photo again, proving the override applied after
+		# and won over the layout's own override.
+		empty_data_dir = tmp_path / "assets"
+		empty_data_dir.mkdir()
+		with pytest.raises(SystemExit):
+			run_main(
+				tmp_path, monkeypatch,
+				"--layout", "ats", "--market", "switzerland", "--rules-override", "show_photo=true",
+				"--data-dir", str(empty_data_dir), "--strict",
+			)
+
+	def test_unknown_key_warns_and_is_ignored(self, tmp_path, monkeypatch, capsys):
+		tex = run_main(tmp_path, monkeypatch, "--rules-override", "show_unicorn=true")
+		assert "Unknown --rules-override key" in capsys.readouterr().out
+		assert "includegraphics" not in tex
+
+	def test_unknown_key_strict_fails(self, tmp_path, monkeypatch):
+		with pytest.raises(SystemExit):
+			run_main(tmp_path, monkeypatch, "--rules-override", "show_unicorn=true", "--strict")
+
+	def test_malformed_pair_warns_and_is_skipped(self, tmp_path, monkeypatch, capsys):
+		run_main(tmp_path, monkeypatch, "--rules-override", "show_photo")
+		assert "Malformed --rules-override entry" in capsys.readouterr().out
+
+	def test_malformed_value_warns_and_is_skipped(self, tmp_path, monkeypatch, capsys):
+		run_main(tmp_path, monkeypatch, "--rules-override", "show_photo=maybe")
+		assert "Malformed --rules-override value" in capsys.readouterr().out
+
+	def test_no_override_is_a_no_op(self, tmp_path, monkeypatch):
+		with_override = run_main(tmp_path, monkeypatch, "--market", "switzerland", "--rules-override", "")
+		without_override = run_main(tmp_path, monkeypatch, "--market", "switzerland")
+		assert with_override == without_override
 
 
 class TestPhotoResolution:
 	def test_missing_photo_is_omitted(self, tmp_path, monkeypatch, capsys):
 		empty_data_dir = tmp_path / "assets"
 		empty_data_dir.mkdir()
-		tex = run_main(tmp_path, monkeypatch, "--market", "CH", "--data-dir", str(empty_data_dir))
+		tex = run_main(tmp_path, monkeypatch, "--market", "switzerland", "--data-dir", str(empty_data_dir))
 		assert "Photo not found" in capsys.readouterr().out
 		assert "includegraphics" not in tex
 
 	def test_missing_photo_ignored_when_market_hides_it(self, tmp_path, monkeypatch, capsys):
 		empty_data_dir = tmp_path / "assets"
 		empty_data_dir.mkdir()
-		run_main(tmp_path, monkeypatch, "--market", "BR", "--data-dir", str(empty_data_dir), "--strict")
+		run_main(tmp_path, monkeypatch, "--market", "international", "--data-dir", str(empty_data_dir), "--strict")
 		assert "Photo not found" not in capsys.readouterr().out
 
 	def test_missing_photo_strict_fails(self, tmp_path, monkeypatch):
 		empty_data_dir = tmp_path / "assets"
 		empty_data_dir.mkdir()
 		with pytest.raises(SystemExit):
-			run_main(tmp_path, monkeypatch, "--market", "CH", "--data-dir", str(empty_data_dir), "--strict")
+			run_main(tmp_path, monkeypatch, "--market", "switzerland", "--data-dir", str(empty_data_dir), "--strict")
 
 
 class TestCompanyResolution:

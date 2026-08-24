@@ -1,38 +1,23 @@
 {
-	"default": {
-		"show_photo": false,
-		"show_dob": false,
-		"show_address": false,
-		"show_nationality": false
-	},
-	"CH": {
-		"show_photo": true,
-		"show_dob": true,
-		"show_address": true,
-		"show_nationality": true
-	},
-	"DE": {
-		"show_photo": true,
-		"show_dob": true,
-		"show_address": true,
-		"show_nationality": true
-	},
-	"BR": {
-		"show_photo": false,
-		"show_dob": false,
-		"show_address": false,
-		"show_nationality": false
-	},
-	"US": {
-		"show_photo": false,
-		"show_dob": false,
-		"show_address": false,
-		"show_nationality": false
-	},
-	"UK": {
-		"show_photo": false,
-		"show_dob": false,
-		"show_address": false,
-		"show_nationality": false
+	"default_market": "international",
+	"markets": {
+		"international": {
+			"show_photo": false,
+			"show_dob": false,
+			"show_address": false,
+			"show_nationality": false
+		},
+		"continental_europe": {
+			"show_photo": true,
+			"show_dob": true,
+			"show_address": true,
+			"show_nationality": true
+		},
+		"switzerland": {
+			"show_photo": true,
+			"show_dob": true,
+			"show_address": true,
+			"show_nationality": true
+		}
 	}
 }

@@ -57,8 +57,8 @@ LANGUAGE_LEVEL_LABELS = {
 DEFAULT_LANGUAGE_SCALE = "descriptive"
 # Markets where a CEFR letter is the expected shorthand for language level.
 LANGUAGE_SCALE_BY_MARKET = {
-	"CH": "cefr",
-	"DE": "cefr",
+	"switzerland": "cefr",
+	"continental_europe": "cefr",
 }
 
 latex_format_map = {
@@ -116,6 +116,33 @@ def warn_or_fail(message: str, strict: bool, fallback: str = "") -> None:
 	if strict:
 		sys.exit(f"❌ {message}")
 	print(f"⚠️ {message}{fallback}")
+
+def parse_rules_override(raw: str, valid_keys: set, strict: bool) -> dict:
+	"""Parse --rules-override's "key=value,key=value" string into a flag dict.
+
+	Applied after market rules and LAYOUT_RULE_OVERRIDES, so this always wins.
+	Unknown keys and unparseable values follow the same warn_or_fail convention
+	as an unknown market: skipped with a warning, fatal under --strict.
+	"""
+	overrides = {}
+	for pair in raw.split(","):
+		pair = pair.strip()
+		if not pair:
+			continue
+		if "=" not in pair:
+			warn_or_fail(f"Malformed --rules-override entry '{pair}' (expected key=value)", strict, "; skipping it")
+			continue
+		key, _, value = pair.partition("=")
+		key = key.strip()
+		value = value.strip().lower()
+		if key not in valid_keys:
+			warn_or_fail(f"Unknown --rules-override key '{key}'", strict, "; skipping it")
+			continue
+		if value not in ("true", "false"):
+			warn_or_fail(f"Malformed --rules-override value '{value}' for key '{key}' (expected true/false)", strict, "; skipping it")
+			continue
+		overrides[key] = value == "true"
+	return overrides
 
 def latex_escape(text: str) -> str:
 	if not isinstance(text, str):
@@ -221,7 +248,7 @@ def main():
 	parser.add_argument("--template-dir", "-t", default="src/template", help="Path to the Jinja template directory holding the layouts")
 	parser.add_argument("--layout", "-l", default=DEFAULT_LAYOUT, help="Layout to render: a directory under --template-dir (e.g. classic, ats)")
 	parser.add_argument("--commit-sha", "-c", default=None, help="The hash of the commit that generated the CV")
-	parser.add_argument("--market", "-m", default="default", help="Target market code (e.g. CH, BR) selecting presentation rules")
+	parser.add_argument("--market", "-m", default="international", help="Target market (e.g. switzerland, continental_europe) selecting presentation rules")
 	parser.add_argument("--market-rules", default="config/market_rules.json", help="Path to the market rules JSON file")
 	parser.add_argument("--data-dir", "-d", default=None, help="Directory relative asset paths in the JSON (e.g. the photo) resolve against; defaults to the input file's directory")
 	parser.add_argument("--links", action=argparse.BooleanOptionalAction, default=True,
@@ -230,6 +257,9 @@ def main():
 		help="How many employer blurbs to print: min hides every companies[].description, "
 		     "mid (default) hides only a company flagged is_well_known, max shows them all")
 	parser.add_argument("--strict", action="store_true", help="Fail on unknown market, missing rules file, or missing assets instead of warning")
+	parser.add_argument("--rules-override", default=None,
+		help="Comma-separated key=value overrides applied after market/layout rules, "
+		     "e.g. show_photo=false,show_address=true")
 	args = parser.parse_args()
 
 	# An unknown layout is fatal with or without --strict: unlike a market, there
@@ -292,22 +322,37 @@ def main():
 	# Absolute so the rendered .tex is independent of pdflatex's working directory.
 	data_dir = os.path.abspath(args.data_dir) if args.data_dir else os.path.dirname(os.path.abspath(args.input))
 
-	# Market presentation rules: country-specific flags merged over defaults.
-	# Templates read them via market.get("flag", true), so a missing file or
-	# unknown market degrades to showing everything — unless --strict.
+	# Market presentation rules: one fully-spelled-out flag set per named
+	# market (e.g. "switzerland"), keyed under "markets". Templates read them
+	# via market.get("flag", true), so a missing file or unknown market
+	# degrades to showing everything — unless --strict.
 	market = {}
+	valid_rule_keys = set()
+	for flags in LAYOUT_RULE_OVERRIDES.values():
+		valid_rule_keys.update(flags)
 	try:
 		with open(args.market_rules, encoding="utf-8") as f:
 			rules = json.load(f)
-		market = {**rules.get("default", {}), **rules.get(args.market, {})}
-		if args.market != "default" and args.market not in rules:
+		markets = rules.get("markets", {})
+		default_market = rules.get("default_market", "international")
+		for flags in markets.values():
+			valid_rule_keys.update(flags)
+		if args.market not in markets:
 			warn_or_fail(f"Market '{args.market}' not found in {args.market_rules}", args.strict, "; using defaults")
+			market = dict(markets.get(default_market, {}))
+		else:
+			market = dict(markets[args.market])
 	except FileNotFoundError:
 		warn_or_fail(f"Market rules file not found: {args.market_rules}", args.strict, "; showing all fields")
 
 	# Applied after the market so a layout that cannot render a field wins over
 	# a market that asks for it (e.g. CH wants a photo, the ATS layout has none).
 	market.update(LAYOUT_RULE_OVERRIDES.get(args.layout, {}))
+
+	# Applied last so an explicit CLI override always wins over both the named
+	# market and the layout's own overrides.
+	if args.rules_override:
+		market.update(parse_rules_override(args.rules_override, valid_rule_keys, args.strict))
 
 	# languages[].level is data as a 0-4 integer; resolve it to the display
 	# string here so every layout's template just reads a plain value, the

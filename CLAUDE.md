@@ -26,6 +26,7 @@ Key `make build` variables (all overridable on the command line, see README for 
 - `COMPANY_DESCRIPTIONS` (`min`/`mid`/`max`) — how many employer blurbs print
 - `STRICT` (`0`/`1`) — fail vs. warn-and-degrade on unknown market/missing files
 - `DATA_DIR` / `INPUT_JSON` / `MARKET_RULES` — input locations
+- `RULES_OVERRIDE` — ad-hoc `key=value,key=value` flag overrides (e.g. `show_photo=false`), applied after `MARKET` and `LAYOUT`'s own rules, for a one-off build that doesn't warrant a named market entry
 
 `TARGET` auto-composes from whichever of these are non-default (e.g. `cv-ats-CH-nolinks`), so different build combinations never overwrite each other's output in `out/`.
 
@@ -42,7 +43,7 @@ Everything funnels through `src/generate_cv.py`, a single-file generator (no pac
    - `personal.nationality` is normalized from a string-or-list into a joined string.
    - `personal.photo` is resolved to an absolute path relative to `--data-dir` and dropped (warn or `--strict` fail) if missing.
 3. Merges market rules: `config/market_rules.json`'s `default` object merged with the entry for `--market`, producing boolean flags (`show_photo`, `show_dob`, `show_address`, `show_nationality`) — read in templates as `market.get("flag", true)`. A missing rules file or unknown market degrades to showing everything rather than failing (unless `--strict`).
-4. Applies `LAYOUT_RULE_OVERRIDES` **after** market rules, so a layout that structurally cannot render something (e.g. `ats`/`txt` never show a photo) always wins over what the market asks for.
+4. Applies `LAYOUT_RULE_OVERRIDES` **after** market rules, so a layout that structurally cannot render something (e.g. `ats`/`txt` never show a photo) always wins over what the market asks for. `--rules-override`/`RULES_OVERRIDE` is applied last of all, so an explicit CLI override always wins over both the market and the layout — same warn-or-fail convention as an unknown market for an unknown flag name or a non-boolean value.
 5. Renders `<template-dir>/<layout>/cv.j2` with Jinja2 (`autoescape=False`; `trim_blocks`/`lstrip_blocks` only for `txt`, since LaTeX shrugs off stray whitespace but plain text doesn't).
 
 ### Layouts (`src/template/<layout>/`)

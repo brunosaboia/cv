@@ -1,11 +1,11 @@
 # ========== CONFIGURATION ==========
 # Everything here is overridable from the command line or the environment,
-# e.g.:  make build DATA_DIR=/path/to/cv-data MARKET=CH
-MARKET ?= default
+# e.g.:  make build DATA_DIR=/path/to/cv-data MARKET=switzerland
+MARKET ?= international
 # Which rendering of the same data to produce: "classic" is the typographic
 # one, "ats" is the single-column PDF layout that résumé scanners parse
 # reliably, "txt" is plain text with no PDF step at all. Orthogonal to
-# MARKET -- they compose (e.g. LAYOUT=ats MARKET=CH).
+# MARKET -- they compose (e.g. LAYOUT=ats MARKET=switzerland).
 LAYOUT ?= classic
 # LINKS=0 keeps every URL as readable text but emits no clickable PDF link
 # annotations, for employers whose systems object to them.
@@ -14,10 +14,14 @@ LINKS ?= 1
 # "mid" (default, today's behaviour) hides only a company flagged
 # is_well_known, "min" hides every one regardless.
 COMPANY_DESCRIPTIONS ?= mid
+# Ad-hoc "key=value,key=value" market-flag overrides applied after MARKET and
+# LAYOUT's own rules, e.g. RULES_OVERRIDE='show_photo=false,show_address=true'.
+# Empty by default -- unlike the other knobs there is no sane non-empty default.
+RULES_OVERRIDE ?=
 
 # Default output name carries whatever is non-default, so matrix builds don't
-# overwrite each other: cv, cv-CH, cv-ats, cv-ats-CH, cv-ats-nolinks, cv-alldesc.
-TARGET ?= cv$(if $(filter-out classic,$(LAYOUT)),-$(LAYOUT))$(if $(filter-out default,$(MARKET)),-$(MARKET))$(if $(filter 0,$(LINKS)),-nolinks)$(if $(filter max,$(COMPANY_DESCRIPTIONS)),-alldesc)$(if $(filter min,$(COMPANY_DESCRIPTIONS)),-nodesc)
+# overwrite each other: cv, cv-switzerland, cv-ats, cv-ats-switzerland, cv-ats-nolinks, cv-alldesc.
+TARGET ?= cv$(if $(filter-out classic,$(LAYOUT)),-$(LAYOUT))$(if $(filter-out international,$(MARKET)),-$(MARKET))$(if $(filter 0,$(LINKS)),-nolinks)$(if $(filter max,$(COMPANY_DESCRIPTIONS)),-alldesc)$(if $(filter min,$(COMPANY_DESCRIPTIONS)),-nodesc)$(if $(RULES_OVERRIDE),-custom)
 
 OUTDIR ?= out
 SRC_DIR = src
@@ -40,7 +44,8 @@ GEN_FLAGS = --input $(INPUT_JSON) --output $(SOURCE) --template-dir $(TEMPLATE_D
             --market $(MARKET) --market-rules $(MARKET_RULES) --layout $(LAYOUT) \
             --company-descriptions $(COMPANY_DESCRIPTIONS) \
             $(if $(filter 0,$(LINKS)),--no-links) \
-            $(if $(filter 1,$(STRICT)),--strict)
+            $(if $(filter 1,$(STRICT)),--strict) \
+            $(if $(RULES_OVERRIDE),--rules-override '$(RULES_OVERRIDE)')
 ifeq ($(LAYOUT),txt)
 SOURCE = $(OUTDIR)/$(TARGET).txt
 OUTPUT = $(SOURCE)
