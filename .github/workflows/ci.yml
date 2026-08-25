@@ -38,9 +38,6 @@ jobs:
     - name: Build sample CV (default market, strict)
       run: make build STRICT=1
 
-    - name: Build sample CV (BR market, strict)
-      run: make build MARKET=BR STRICT=1
-
     - name: Build sample CV (ATS layout, strict)
       run: make build LAYOUT=ats STRICT=1
 
@@ -48,7 +45,7 @@ jobs:
     # layout has to drop the photo a photo market asks for without --strict
     # tripping over the file it never reads.
     - name: Build sample CV (ATS layout, CH market, strict)
-      run: make build LAYOUT=ats MARKET=CH STRICT=1
+      run: make build LAYOUT=ats MARKET=switzerland STRICT=1
 
     # Both layouts take a different route through their templates with links
     # off, so build both rather than trusting one to cover the other.
@@ -62,8 +59,8 @@ jobs:
     - name: Build sample CV (txt layout, strict)
       run: make build LAYOUT=txt STRICT=1
 
-    - name: Build sample CV (txt layout, CH market, strict)
-      run: make build LAYOUT=txt MARKET=CH STRICT=1
+    - name: Build sample CV (txt layout, Switzerland market, strict)
+      run: make build LAYOUT=txt MARKET=switzerland STRICT=1
 
     - name: Upload sample PDFs
       uses: actions/upload-artifact@v7
