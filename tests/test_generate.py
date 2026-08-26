@@ -5,7 +5,16 @@ from pathlib import Path
 
 import pytest
 
-from generate_cv import available_layouts, main, parse_nationality, simplify_remote_location, warn_or_fail
+from generate_cv import (
+	available_layouts,
+	flatten_roles,
+	main,
+	normalize_experience,
+	parse_nationality,
+	role_span,
+	simplify_remote_location,
+	warn_or_fail,
+)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -316,24 +325,47 @@ class TestLanguagesSection:
 
 
 class TestLanguageLevels:
-	"""languages[].level is our own scale (0 native .. 4 basic), translated to
-	a display string per market: CEFR letters for switzerland/continental_europe,
-	the descriptive wording every other market (and the data itself, before
-	this scale existed) already used. Sample data: English=0, French=1, German=2."""
+	"""languages[].level is our own scale: 0 native plus the six CEFR letters,
+	1 (C2) through 6 (A1), translated to a display string per market: CEFR
+	letters for switzerland/continental_europe, the descriptive wording every
+	other market (and the data itself, before this scale existed) already used.
+	Sample data: English=0, French=1, German=2."""
 
 	@pytest.mark.parametrize("market", ["international"])
 	def test_non_european_markets_use_the_descriptive_wording(self, tmp_path, monkeypatch, market):
 		tex = run_main(tmp_path, monkeypatch, "--market", market)
 		assert "English — Native" in tex
 		assert "French — Full professional proficiency" in tex
-		assert "German — Professional working proficiency" in tex
+		# C1 has no descriptive wording of its own: it repeats C2's.
+		assert "German — Full professional proficiency" in tex
 
 	@pytest.mark.parametrize("market", ["switzerland", "continental_europe"])
 	def test_ch_de_use_cefr_letters(self, tmp_path, monkeypatch, market):
 		tex = run_main(tmp_path, monkeypatch, "--market", market)
 		assert "English — Native" in tex  # native has no CEFR letter
 		assert "French — C2" in tex
-		assert "German — B2" in tex
+		assert "German — C1" in tex
+
+	@pytest.mark.parametrize("market,expected", [
+		("international", [
+			"Native",
+			"Full professional proficiency",
+			"Full professional proficiency",
+			"Professional working proficiency",
+			"Limited professional proficiency",
+			"Basic",
+			"Basic",
+		]),
+		("switzerland", ["Native", "C2", "C1", "B2", "B1", "A2", "A1"]),
+	])
+	def test_every_level_maps_to_exactly_one_label(self, tmp_path, monkeypatch, market, expected):
+		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
+		data["languages"] = [{"name": f"L{level}", "level": level} for level in range(7)]
+		specials = tmp_path / "specials.json"
+		specials.write_text(json.dumps(data), encoding="utf-8")
+		tex = run_main(tmp_path, monkeypatch, "--market", market, input_json=specials)
+		for level, label in enumerate(expected):
+			assert f"L{level} — {label}" in tex
 
 	def test_unknown_level_warns_and_shows_the_raw_value(self, tmp_path, monkeypatch, capsys):
 		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
@@ -598,6 +630,175 @@ class TestCompanyResolution:
 			run_main(tmp_path, monkeypatch, "--strict", input_json=self._with_broken_company(tmp_path))
 
 
+class TestRoleGrouping:
+	"""One employer, several roles. A promotion is not a change of employer,
+	so experience[] entries carry a company plus a roles[] list; the older
+	flat spelling (title/duration/... directly on the entry) normalizes to a
+	one-role group, which is what lets both live in the data indefinitely and
+	what lets cv render a cv-data that hasn't adopted roles[] yet.
+
+	The sample's NeuralCore entry is the grouped one -- deliberately, because
+	it is the only sample company that is not is_well_known, so its blurb
+	prints at the default level and these tests can assert it appears once in
+	classic and once per role in ats/txt."""
+
+	COMPANY = "NeuralCore AG"
+	BLURB = "machine learning solutions for healthcare"
+	TITLES = ("Machine Learning Engineer", "Data Engineer")
+
+	def test_a_flat_entry_normalizes_to_a_single_role(self):
+		entry = normalize_experience({
+			"company": "acme", "location": "Bern, CH", "title": "Engineer",
+			"duration": {"start": "2020-01-01", "end": "2021-01-01"},
+			"description": "Did the thing.", "technologies": ["Python"],
+		})
+		# The role fields move down; company and location stay put, because
+		# they describe the employer and not the position.
+		assert entry["company"] == "acme"
+		assert entry["location"] == "Bern, CH"
+		assert entry["roles"] == [{
+			"title": "Engineer",
+			"duration": {"start": "2020-01-01", "end": "2021-01-01"},
+			"description": "Did the thing.", "technologies": ["Python"],
+		}]
+		assert not any(field in entry for field in ("title", "duration", "description", "technologies"))
+
+	def test_a_grouped_entry_keeps_its_roles_in_the_authored_order(self):
+		# Nothing in this pipeline sorts experience, and this change does not
+		# start: the file's order is the rendered order.
+		entry = normalize_experience({
+			"company": "acme",
+			"roles": [{"title": "Senior"}, {"title": "Junior"}],
+		})
+		assert [role["title"] for role in entry["roles"]] == ["Senior", "Junior"]
+
+	def test_the_span_covers_every_role(self):
+		span = role_span([
+			{"duration": {"start": "2022-03-01", "end": "2023-06-01"}},
+			{"duration": {"start": "2021-01-01", "end": "2022-03-01"}},
+		])
+		assert span == {"start": "2021-01-01", "end": "2023-06-01"}
+
+	def test_an_ongoing_role_makes_the_whole_span_present(self):
+		# You have not left a company you still work at, whatever the other
+		# roles say -- a blank end dominates the group.
+		span = role_span([
+			{"duration": {"start": "2022-03-01", "end": ""}},
+			{"duration": {"start": "2021-01-01", "end": "2022-03-01"}},
+		])
+		assert span == {"start": "2021-01-01", "end": ""}
+
+	def test_a_malformed_role_date_does_not_break_the_span(self):
+		# Malformed dates already print verbatim everywhere else here (as_date
+		# hands them back, parse_duration says "Unknown duration"); a derived
+		# span is a reading convenience, not a fact worth failing a build over.
+		span = role_span([{"duration": {"start": "someday", "end": "2023-06-01"}}])
+		assert span == {"start": "someday", "end": "2023-06-01"}
+
+	def test_flatten_repeats_the_employer_and_keeps_each_role_whole(self):
+		flat = flatten_roles([{
+			"company": "acme", "location": "Bern, CH",
+			"roles": [
+				{"title": "Senior", "technologies": ["Rust"]},
+				{"title": "Junior", "technologies": ["Python"]},
+			],
+		}])
+		assert [role["company"] for role in flat] == ["acme", "acme"]
+		assert [role["location"] for role in flat] == ["Bern, CH", "Bern, CH"]
+		# Per-role, not merged: a scanner reading one block must see the stack
+		# that block's title was actually held with.
+		assert [role["technologies"] for role in flat] == [["Rust"], ["Python"]]
+
+	def test_a_role_location_overrides_the_entrys(self, tmp_path, monkeypatch):
+		# A promotion that came with a move. Falls out of flatten_roles rather
+		# than being a feature of its own, but it is reachable, so it is tested.
+		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
+		data["experience"][1]["roles"][1]["location"] = "Lausanne, CH"
+		specials = tmp_path / "specials.json"
+		specials.write_text(json.dumps(data), encoding="utf-8")
+		txt = run_main(tmp_path, monkeypatch, "--layout", "txt", input_json=specials)
+		assert f"{self.COMPANY}, Bern, CH" in txt
+		assert f"{self.COMPANY}, Lausanne, CH" in txt
+
+	def test_classic_prints_the_employer_once(self, tmp_path, monkeypatch):
+		tex = run_main(tmp_path, monkeypatch, "--layout", "classic", "--company-descriptions", "max")
+		assert tex.count(f"{{\\bf {self.COMPANY}}}") == 1
+		assert tex.count(self.BLURB) == 1
+		assert tex.count("https://neuralcore.ch") == 2  # \href{ url }{ url }, one line
+		for title in self.TITLES:
+			assert f"\\hspace*{{\\cvroleindent}}{{\\sl {title} }}" in tex
+
+	def test_classic_shows_the_combined_span_and_total_tenure(self, tmp_path, monkeypatch):
+		# The number the two-entry spelling never stated: the reader had to
+		# add the roles up themselves.
+		tex = run_main(tmp_path, monkeypatch, "--layout", "classic")
+		assert f"{{\\bf {self.COMPANY}}}, {{\\sl Bern, CH}} \\hfill {{\\sl January 2021 -- June 2023}}" in tex
+		assert "{\\sl (2 years, 5 months)}" in tex
+
+	def test_classic_keeps_each_role_dated_in_its_own_right(self, tmp_path, monkeypatch):
+		tex = run_main(tmp_path, monkeypatch, "--layout", "classic")
+		assert "March 2022 -- June 2023 (1 year, 3 months)" in tex
+		assert "January 2021 -- March 2022 (1 year, 2 months)" in tex
+
+	@pytest.mark.parametrize("layout", ["ats", "txt"])
+	def test_ats_and_txt_repeat_the_employer_per_role(self, tmp_path, monkeypatch, layout):
+		# The opposite of classic, on purpose: a résumé parser keys on a
+		# company/title/dates triple on consecutive lines, and a lone header
+		# with two roles under it is what makes it attribute both to the first
+		# title or drop the earlier one.
+		rendered = run_main(tmp_path, monkeypatch, "--layout", layout)
+		assert rendered.count(f"{self.COMPANY}, Bern, CH") == 2
+		for title in self.TITLES:
+			assert title in rendered
+
+	def test_a_grouped_employer_without_a_url_still_gets_its_tenure(self, tmp_path, monkeypatch):
+		# The tenure normally rides on the URL line. With no URL it needs a line
+		# of its own, and \hfill cannot right-align it there: \\ is a forced
+		# break and glue following a break is discarded, so the number would
+		# collapse flush left. No sample or real employer is URL-less, so
+		# nothing else would catch that.
+		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
+		data["companies"][1]["url"] = ""
+		specials = tmp_path / "specials.json"
+		specials.write_text(json.dumps(data), encoding="utf-8")
+		tex = run_main(tmp_path, monkeypatch, "--layout", "classic", input_json=specials)
+		assert "\\hspace*{\\fill}{\\sl (2 years, 5 months)}" in tex
+		assert "\\href{  }{  }" not in tex
+
+	def test_grouped_role_fields_are_escaped(self, tmp_path, monkeypatch):
+		# The grouped branch of classic/sections/experience.j2 is new markup,
+		# so it needs its own escaping check -- TestClassicEscaping counts
+		# injections along the flat path and would not cover it.
+		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
+		data["experience"][1]["roles"][0]["title"] = TestClassicEscaping.SENTINEL
+		data["experience"][1]["roles"][0]["description"] = TestClassicEscaping.SENTINEL
+		specials = tmp_path / "specials.json"
+		specials.write_text(json.dumps(data), encoding="utf-8")
+		tex = strip_latex_comments(run_main(tmp_path, monkeypatch, "--layout", "classic", input_json=specials))
+		assert TestClassicEscaping.SENTINEL not in tex
+		# Counting, not just presence: a field that lost its text entirely
+		# would still pass an "is it escaped" check.
+		assert tex.count(TestClassicEscaping.ESCAPED) == 2
+
+	def _with_a_stray_top_level_field(self, tmp_path):
+		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
+		data["experience"][1]["title"] = "Never Rendered"
+		specials = tmp_path / "specials.json"
+		specials.write_text(json.dumps(data), encoding="utf-8")
+		return specials
+
+	def test_a_stray_top_level_role_field_warns(self, tmp_path, monkeypatch, capsys):
+		# Nothing reads it once roles[] is present, so it would vanish in
+		# silence -- exactly the class of authoring slip worth naming.
+		tex = run_main(tmp_path, monkeypatch, input_json=self._with_a_stray_top_level_field(tmp_path))
+		assert "carries both roles[] and top-level title" in capsys.readouterr().out
+		assert "Never Rendered" not in tex
+
+	def test_a_stray_top_level_role_field_is_fatal_under_strict(self, tmp_path, monkeypatch):
+		with pytest.raises(SystemExit):
+			run_main(tmp_path, monkeypatch, "--strict", input_json=self._with_a_stray_top_level_field(tmp_path))
+
+
 class TestWellKnownCompanies:
 	"""companies[].is_well_known marks a household-name employer (the
 	sample's Swiss National Bank); --company-descriptions decides whether a
@@ -605,7 +806,10 @@ class TestWellKnownCompanies:
 	well-known company's blurb, like NeuralCore's still needs; max shows
 	every blurb regardless; min hides every blurb regardless. The flag is
 	per-company, not per-role, and only ever touches company.description --
-	the role's own description (the "my mission was..." text) always prints."""
+	the role's own description (the "my mission was..." text) always prints.
+	Grouping (see TestRoleGrouping) makes that structural rather than merely
+	conventional: several roles at one employer share one company node, so
+	there is no per-role blurb for the flag to disagree with."""
 
 	SNB_BLURB = "central bank of Switzerland"
 	NEURALCORE_BLURB = "machine learning solutions for healthcare"

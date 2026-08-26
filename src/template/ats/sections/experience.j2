@@ -1,8 +1,13 @@
 {# Employer, role and dates on consecutive lines, all left-aligned. The classic
    layout pushes the dates right with \hfill, which puts them somewhere else
    entirely in the content stream -- the single biggest reason a scanner mis-reads
-   tenure or drops it. #}
-{% for item in experience %}
+   tenure or drops it.
+
+   flatten_roles re-expands an employer that holds several roles into one block
+   per role, repeating the company header each time. classic nests those roles
+   under a single header; a scanner needs the triple repeated -- see the
+   filter's docstring in generate_cv.py. #}
+{% for item in experience | flatten_roles %}
 \begin{cventry}
 \textbf{ {{- item.company.name | latex_escape }}{% if item.location %}, {{ item.location | latex_escape }}{% endif -%} }
 

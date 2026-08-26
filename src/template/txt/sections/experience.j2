@@ -1,4 +1,8 @@
-{% for item in experience %}
+{# flatten_roles re-expands an employer that holds several roles into one block
+   per role, repeating the company header each time -- classic nests them under
+   a single header, this layout deliberately does not. See the filter's
+   docstring in generate_cv.py. #}
+{% for item in experience | flatten_roles %}
 {# A remote location like "Remote (Brazil -- US)" reads fine on a page but
    confuses an ATS's location field parser, which expects a single place
    name -- collapse it to the bare "Remote" here. Other layouts are read by

@@ -64,17 +64,19 @@ make build MARKET=switzerland RULES_OVERRIDE='show_photo=false'
 An unknown flag name or a value other than `true`/`false` warns and is skipped (or fails under `--strict`), the same convention as an unknown market. A missing `market_rules.json` doesn't block a `RULES_OVERRIDE`-only build either — it degrades to showing everything, same as without an override, and the override still applies on top.
 
 ## Language levels
-`languages[].level` in the data is our own scale, not a display string: `0` native, `1` fluent, `2` advanced, `3` intermediate, `4` basic. `generate_cv.py` translates it to a display string once, per market, before any template sees it — so unlike a market rule, there's no flag for a template to read:
+`languages[].level` in the data is our own scale, not a display string: `0` native, then the six CEFR letters in descending order (`1` C2 through `6` A1). `generate_cv.py` translates it to a display string once, per market, before any template sees it — so unlike a market rule, there's no flag for a template to read:
 
-| Level | `international` | `continental_europe`, `switzerland` |
-|:-----:|------|:----------:|
-| `0` | Native | Native |
-| `1` | Full professional proficiency | C2 |
-| `2` | Professional working proficiency | B2 |
-| `3` | Limited professional proficiency | B1 |
-| `4` | Basic | A2 |
+| Level | CEFR tier | `international` | `continental_europe`, `switzerland` |
+|:-----:|:---------:|------|:----------:|
+| `0` | *(mother tongue)* | Native | Native |
+| `1` | C2 | Full professional proficiency | C2 |
+| `2` | C1 | Full professional proficiency | C1 |
+| `3` | B2 | Professional working proficiency | B2 |
+| `4` | B1 | Limited professional proficiency | B1 |
+| `5` | A2 | Basic | A2 |
+| `6` | A1 | Basic | A1 |
 
-CEFR has six tiers (A1–C2) to our four non-native ones, so the mapping skips A1 and C1 rather than cluster at either end of the scale; native is kept as its own label on both sides rather than folded into C2, since a mother tongue isn't a CEFR tier at all. A level outside `0`–`4` warns and prints the raw value (or fails under `--strict`) rather than guessing.
+The descriptive column has only five wordings for six non-native tiers: each label sits at the tier it has always meant (C2 = full professional, B2 = professional working, B1 = limited professional, A2 = basic), and the two tiers CEFR adds between them (C1, A1) repeat their neighbour's wording rather than invent new strings. Native is kept as its own label on both sides rather than folded into C2, since a mother tongue isn't a CEFR tier at all. A level outside `0`–`6` warns and prints the raw value (or fails under `--strict`) rather than guessing.
 
 ## Layouts
 `MARKET` decides *what* is shown; `LAYOUT` decides *how* it is rendered. The two are independent and compose, so `LAYOUT=ats MARKET=switzerland` is a thing you can build. Each layout is a self-contained directory under `src/template/` holding a root `cv.j2` and its own `sections/`.
@@ -110,6 +112,24 @@ make build LAYOUT=ats LINKS=0         # -> out/cv-ats-nolinks.pdf
 ```
 
 Both PDF layouts honour it, but they pay different prices. In `ats` every link's text was already the URL itself, so the text layer comes out byte-for-byte identical — only the annotations disappear. In `classic` several links are *labelled* (`GitHub`, `LinkedIn`, `Transcript of records`, and the award / certification / review dates), and dropping those would take the addresses out of the document entirely, so `LINKS=0` prints them instead: as a URL pair in the header, and on a continuation line under the entry elsewhere. That makes a link-free `classic` noticeably denser than the normal one. A `LINKS=1` build is unaffected — it renders exactly as it always has. `txt` has no link annotations to drop in the first place — every address is already plain text — so `LINKS` makes no difference to its output.
+
+### Several roles at one employer
+A promotion is one employer, not two. An `experience[]` entry therefore names a company once and carries a `roles` list under it:
+
+```json
+{
+  "company": "bis",
+  "location": "Basel, CH",
+  "roles": [
+    { "title": "Data Analytics Engineer",   "duration": { "start": "2024-05-01", "end": "2025-05-01" }, "...": "..." },
+    { "title": "Business Analyst/Developer", "duration": { "start": "2022-05-01", "end": "2024-05-01" }, "...": "..." }
+  ]
+}
+```
+
+The three layouts deliberately disagree about what to do with that. `classic` prints the employer, its URL and its blurb **once**, with the combined date span and the total tenure the two-entry spelling never stated, and indents each role beneath it with its own dates and duration. `ats` and `txt` **re-expand** the group and repeat the employer per role: a résumé parser keys on a company/title/dates triple appearing on consecutive lines, and a lone header with two roles under it is exactly the shape that makes it attribute both to the first title, or drop the earlier role — the failure the `ats` layout exists to avoid.
+
+The older flat spelling — `title`, `duration`, `description`, `achievements` and `technologies` directly on the entry, no `roles` — is still accepted and always will be. `generate_cv.py` normalizes it into a one-role group before any template runs, so no template branches on which spelling the JSON used and a flat entry renders byte-for-byte as it did before `roles` existed. That backwards compatibility is load-bearing rather than merely polite: `cv-data`'s deploy checks out this repo at its default branch, unpinned, so the generator has to keep rendering a `cv.json` that hasn't adopted `roles` yet. A role may also carry its own `location`, overriding the entry's, for a promotion that came with a move.
 
 ### Company description verbosity
 An `experience[]` entry can carry two different blurbs: `item.description` (what *you* did there — always printed) and `item.company`'s own `description` (what the *employer* is — a household name doesn't need it explained). Each employer in `companies[]` can be marked `"is_well_known": true`, but whether a build actually acts on that is a separate knob:

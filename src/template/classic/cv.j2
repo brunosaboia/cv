@@ -52,19 +52,21 @@
 % nothing: a new section reads as just another paragraph. Doubling it to
 % 2\baselineskip (the same ratio the ats layout uses between \cvsection's
 % \addvspace and its own \parskip) is enough to read as a section break.
-% This is also the "section" gap of the three below -- kept unchanged.
+% This is also the "section" gap of the four below -- kept unchanged.
 \newskip\cvsectionskip
 \cvsectionskip=2\baselineskip plus 6pt minus 3pt
 
-% Four independently tunable gaps, smallest to largest: \cvsubitemskip between
+% Five independently tunable gaps, smallest to largest: \cvsubitemskip between
 % an entry's own header (employer/title/dates) and its body (e.g. the role
-% description or achievement bullets), \cvitemskip between entries within a
-% section (e.g. each role in Experience, each degree in Education),
-% \cvheaderskip between the contact header and the first section,
-% \cvsectionskip (above) between one section and the next. \section always
-% reads res.cls's own \sectionskip register at call time, so the header/for
-% loop below swaps its value to \cvheaderskip only for the very first section.
+% description or achievement bullets), \cvroleskip between two roles at the
+% same employer, \cvitemskip between entries within a section (e.g. each
+% employer in Experience, each degree in Education), \cvheaderskip between the
+% contact header and the first section, \cvsectionskip (above) between one
+% section and the next. \section always reads res.cls's own \sectionskip
+% register at call time, so the header/for loop below swaps its value to
+% \cvheaderskip only for the very first section.
 \newskip\cvsubitemskip
+\newskip\cvroleskip
 \newskip\cvitemskip
 \newskip\cvheaderskip
 % Negative: an entry's header-to-body break is a plain \\ within the same
@@ -73,11 +75,27 @@
 % default is what keeps it visibly tighter than the item-to-item gap even
 % though \cvitemskip itself is a small addition.
 \cvsubitemskip=-0.3\baselineskip
+% Between two roles at one employer. All three of these gaps ride on a
+% preceding \\, so they are comparable in baselines: header-to-body is
+% \\[\cvsubitemskip] plus the body's own empty \\ line (2 - 0.3 = 1.7),
+% employer-to-employer is \\ plus a blank line and so 2 + \parskip (2.4), and
+% role-to-role is the single \\ this register rides on (1 + \cvroleskip). It
+% has to beat 1.7 or a role's description reads as belonging to the role below
+% it rather than the title above it, and stay under 2.4 or a promotion reads as
+% a change of employer. One baseline lands squarely between the two.
+\cvroleskip=1\baselineskip plus 2pt minus 1pt
 \cvitemskip=0.4\baselineskip plus 2pt minus 1pt
 \cvheaderskip=1.2\baselineskip plus 3pt minus 2pt
 \sectionskip=\cvsectionskip
 
-% Item-to-item separation (each role in Experience, each degree in Education)
+% How far a role's title line is pushed in under its employer's header. Only
+% the title moves: its description, bullets and technologies stay flush left so
+% a wrapped paragraph keeps a straight edge. A dimen rather than a skip -- an
+% indent is a fixed distance and must not stretch with the line.
+\newdimen\cvroleindent
+\cvroleindent=1em
+
+% Item-to-item separation (each employer in Experience, each degree in Education)
 % is an ordinary blank-line paragraph break in those templates, so it is
 % \parskip -- not \sectionskip -- that drives it. res.cls sets \parskip to a
 % full \baselineskip (see above); lowering the register itself to \cvitemskip

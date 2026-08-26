@@ -1,9 +1,43 @@
+{#- A role's body -- description, achievement bullets, technologies -- reads the
+   same whether it hangs off a lone role or is one of several under a shared
+   company header, so it is written once here rather than twice below.
+
+   trailing_skip is appended to the closing \\ so the grouped branch can widen
+   the gap after every role but the last (\\[\cvroleskip]). It defaults to
+   empty, which is what makes the single-role branch emit the bare \\ it always
+   has -- this file has to reproduce today's .tex byte for byte for every
+   single-role entry, or the whole PDF reflows around the one that changed. #}
+{%- macro role_body(role, trailing_skip='') -%}
+{%- if role.description %}
+	\\
+	{{ role.description | latex_escape }}
+{%- endif %}
+{%- if role.achievements %}
+	\begin{itemize}
+		{%- for achievement in role.achievements %}
+		\item {{ achievement | latex_escape }}
+		{%- endfor %}
+	\end{itemize}
+{%- else %}
+	\\
+{%- endif %}
+	{\sl Technologies: {{ role.technologies | join(', ') | latex_escape }} }
+	\\{{ trailing_skip }}
+{%- endmacro -%}
 {% for item in experience %}
-	{\bf {{ item.company.name | latex_escape }}}, {\sl {{ item.location | latex_escape }}} \hfill {\sl {{ item.duration.start | as_date(fmt_month_year) }} -- {{ item.duration.end | as_date(fmt_month_year) }}} \\
+{#- One employer, one header. An entry that holds a single role is rendered
+   exactly as it was before roles[] existed; only an employer with several
+   roles (a promotion) takes the grouped branch, where the header carries the
+   combined span and total tenure and each role hangs below it. ats and txt
+   deliberately do the opposite and repeat the header per role -- see
+   flatten_roles in generate_cv.py. #}
+{%- if item.roles | length == 1 %}
+{%- set role = item.roles[0] %}
+	{\bf {{ item.company.name | latex_escape }}}, {\sl {{ item.location | latex_escape }}} \hfill {\sl {{ role.duration.start | as_date(fmt_month_year) }} -- {{ role.duration.end | as_date(fmt_month_year) }}} \\
 	{%- if item.company.url %}
 	{\sl — {% if links %}\href{ {{ item.company.url }} }{ {{ item.company.url }} }{% else %}\weburl{ {{- item.company.url -}} }{% endif %}} \\
 	{%- endif %}
-	{\sl {{ item.title | latex_escape }} } \hfill {\sl ({{ parse_duration(item.duration.start, item.duration.end) }})} \\[\cvsubitemskip]
+	{\sl {{ role.title | latex_escape }} } \hfill {\sl ({{ parse_duration(role.duration.start, role.duration.end) }})} \\[\cvsubitemskip]
 	{#- A household name (Google, a national central bank, ...) doesn't need a
 	   blurb explaining what it is; that space is better spent on the role
 	   itself. company.show_description is resolved once in generate_cv.py
@@ -14,19 +48,32 @@
 	\\
 	{{ item.company.description | latex_escape }}
 	{%- endif %}
-	{%- if item.description %}
-	\\
-	{{ item.description | latex_escape }}
-	{%- endif %}
-	{%- if item.achievements %}
-	\begin{itemize}
-		{%- for achievement in item.achievements %}
-		\item {{ achievement | latex_escape }}
-		{%- endfor %}
-	\end{itemize}
+	{{- role_body(role) }}
+{%- else %}
+	{\bf {{ item.company.name | latex_escape }}}, {\sl {{ item.location | latex_escape }}} \hfill {\sl {{ item.span.start | as_date(fmt_month_year) }} -- {{ item.span.end | as_date(fmt_month_year) }}} \\
+	{#- The total tenure at the employer rides on the URL line, where the
+	   single-role branch puts the per-role duration. It is the one number the
+	   old two-entry spelling never stated: the reader had to add the roles up. #}
+	{%- if item.company.url %}
+	{\sl — {% if links %}\href{ {{ item.company.url }} }{ {{ item.company.url }} }{% else %}\weburl{ {{- item.company.url -}} }{% endif %}} \hfill {\sl ({{ parse_duration(item.span.start, item.span.end) }})} \\
 	{%- else %}
-	\\
+	{#- \hspace*{\fill}, not \hfill: \\ is a forced break, and glue that follows
+	   a break is discarded -- a bare \hfill here would collapse and leave the
+	   tenure flush left. The star form emits an empty box first, so it stays. #}
+	\hspace*{\fill}{\sl ({{ parse_duration(item.span.start, item.span.end) }})} \\
 	{%- endif %}
-	{\sl Technologies: {{ item.technologies | join(', ') | latex_escape }} }
+	{#- The blurb describes the employer, so in the grouped case it goes above
+	   the roles rather than trailing one of them. #}
+	{%- if item.company.description and item.company.show_description %}
 	\\
+	{{ item.company.description | latex_escape }} \\
+	{%- endif %}
+	{%- for role in item.roles %}
+	{#- Only the title line is indented. The description, bullets and
+	   technologies stay flush so a wrapped paragraph keeps a straight left
+	   edge; res.cls has no indentation helper to reuse for this. #}
+	\hspace*{\cvroleindent}{\sl {{ role.title | latex_escape }} } \hfill {\sl {{ role.duration.start | as_date(fmt_month_year) }} -- {{ role.duration.end | as_date(fmt_month_year) }} ({{ parse_duration(role.duration.start, role.duration.end) }})} \\[\cvsubitemskip]
+	{{- role_body(role, '' if loop.last else '[\\cvroleskip]') }}
+	{%- endfor %}
+{%- endif %}
 {% endfor %}

@@ -79,17 +79,32 @@
 		{
 			"company": "neuralcore",
 			"location": "Bern, CH",
-			"title": "Machine Learning Engineer",
-			"duration": {
-				"start": "2021-01-01",
-				"end": "2023-06-01"
-			},
-			"description": "Built the core diagnostic models used by hospital partners.",
-			"achievements": [
-				"Built end-to-end pipelines for processing medical imaging data",
-				"Designed anomaly-detection models for MRI scans, cutting radiologist review time by 20%"
-			],
-			"technologies": ["PyTorch", "FastAPI", "PostgreSQL", "DVC", "MLflow"]
+			"roles": [
+				{
+					"title": "Machine Learning Engineer",
+					"duration": {
+						"start": "2022-03-01",
+						"end": "2023-06-01"
+					},
+					"description": "Built the core diagnostic models used by hospital partners.",
+					"achievements": [
+						"Designed anomaly-detection models for MRI scans, cutting radiologist review time by 20%"
+					],
+					"technologies": ["PyTorch", "FastAPI", "MLflow"]
+				},
+				{
+					"title": "Data Engineer",
+					"duration": {
+						"start": "2021-01-01",
+						"end": "2022-03-01"
+					},
+					"description": "Built the imaging data platform those models were trained on.",
+					"achievements": [
+						"Built end-to-end pipelines for processing medical imaging data"
+					],
+					"technologies": ["Python", "PostgreSQL", "DVC"]
+				}
+			]
 		},
 		{
 			"company": "globaltech",

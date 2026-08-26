@@ -26,32 +26,41 @@ LAYOUT_RULE_OVERRIDES = {
 	"txt": {"show_photo": False},
 }
 
-# languages[].level is our own market-independent scale: 0 (native) through
-# 4 (basic). Not a market_rules.json flag -- unlike show_photo/show_dob this
-# doesn't toggle template content on or off, it picks which of these tables a
-# level is translated through before templates ever see it, so there is
-# nothing for a template itself to read (test_every_declared_rule_is_read_by_a_template
+# languages[].level is our own market-independent scale: 0 (native) plus the
+# six CEFR letters in descending order, 1 (C2) through 6 (A1). Not a
+# market_rules.json flag -- unlike show_photo/show_dob this doesn't toggle
+# template content on or off, it picks which of these tables a level is
+# translated through before templates ever see it, so there is nothing for a
+# template itself to read (test_every_declared_rule_is_read_by_a_template
 # only applies to flags templates branch on).
 LANGUAGE_LEVEL_LABELS = {
-	# Wording already in use on both datasets before this scale existed;
-	# kept verbatim so a "descriptive"-scale build is unchanged.
+	# Five wording tiers to seven levels: each label sits at the tier it has
+	# always meant (C2 = full professional, B2 = professional working,
+	# B1 = limited professional, A2 = basic), kept verbatim from the strings
+	# both datasets used before this scale existed. The two tiers CEFR adds
+	# between them (C1, A1) inherit their neighbour's wording rather than
+	# invent new strings -- so renumbering the data onto the finer ladder
+	# left every descriptive rendering byte-identical.
 	"descriptive": {
 		0: "Native",
 		1: "Full professional proficiency",
-		2: "Professional working proficiency",
-		3: "Limited professional proficiency",
-		4: "Basic",
+		2: "Full professional proficiency",
+		3: "Professional working proficiency",
+		4: "Limited professional proficiency",
+		5: "Basic",
+		6: "Basic",
 	},
-	# CEFR has six tiers (A1-C2) to our five; native is kept as its own label
-	# rather than folded into C2 (a native speaker isn't merely "C2" -- CEFR
-	# has no tier for a mother tongue), and the remaining four skip A1 and
-	# C1 rather than cluster at either end of the scale.
+	# Native stays its own label rather than folding into C2 (a native
+	# speaker isn't merely "C2" -- CEFR has no tier for a mother tongue);
+	# levels 1-6 are the six letters, C2 down to A1.
 	"cefr": {
 		0: "Native",
 		1: "C2",
-		2: "B2",
-		3: "B1",
-		4: "A2",
+		2: "C1",
+		3: "B2",
+		4: "B1",
+		5: "A2",
+		6: "A1",
 	},
 }
 DEFAULT_LANGUAGE_SCALE = "descriptive"
@@ -241,6 +250,110 @@ def simplify_remote_location(location: str) -> str:
 		return "Remote"
 	return location
 
+# The fields that describe a position rather than the employer. Moving exactly
+# these down a level is what makes a flat entry and a one-role group
+# indistinguishable once normalized, which is what lets both spellings live in
+# the data indefinitely -- most entries are written flat and there is no reason
+# to rewrite them. "location" is deliberately not one of them: it belongs to
+# the entry, and a role only ever overrides it (see flatten_roles).
+ROLE_FIELDS = ("title", "duration", "description", "achievements", "technologies")
+
+def _is_iso_date(value) -> bool:
+	"""Whether a value is a yyyy-MM-dd string, i.e. safe to order lexically."""
+	return isinstance(value, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", value) is not None
+
+def role_span(roles: list) -> dict:
+	"""Earliest start and latest end across one company's roles.
+
+	ISO dates sort correctly as plain strings, so this needs no date parsing
+	and inherits none of strptime's failure modes. A blank or absent end means
+	the role is current, and that dominates the whole group: you have not left
+	a company you still work at, whatever the other roles say.
+
+	A date that doesn't look like a date is left out of the comparison and the
+	first role's raw value passed through instead. Malformed dates already
+	print verbatim everywhere else in this pipeline (as_date hands them back
+	unchanged, parse_duration says "Unknown duration"), and a derived span is a
+	reading convenience, not a fact worth failing a build over.
+	"""
+	starts = [role.get("duration", {}).get("start") for role in roles]
+	ends = [role.get("duration", {}).get("end") for role in roles]
+
+	usable_starts = [start for start in starts if _is_iso_date(start)]
+	start = min(usable_starts) if usable_starts else (starts[0] if starts else "")
+
+	if any(not end for end in ends):
+		end = ""
+	else:
+		usable_ends = [end for end in ends if _is_iso_date(end)]
+		end = max(usable_ends) if usable_ends else (ends[0] if ends else "")
+
+	return {"start": start, "end": end}
+
+def normalize_experience(entry: dict, strict: bool = False) -> dict:
+	"""Reshape one experience entry into a company node holding roles[].
+
+	A promotion is one employer, not two, so an entry may carry several roles
+	under a shared company and location. An entry written the older flat way --
+	title/duration/description/technologies directly on the entry -- collapses
+	to a one-role group here, so no template ever branches on which spelling
+	the JSON used and no existing data has to be migrated.
+
+	That backwards compatibility is load-bearing rather than merely polite:
+	cv-data is deployed from a checkout of cv's default branch, so this
+	generator has to keep rendering a cv.json that hasn't adopted roles[] yet.
+	"""
+	if isinstance(entry.get("roles"), list):
+		roles = [dict(role) for role in entry["roles"]]
+		# A role field left at the top level next to roles[] is an authoring
+		# slip, and a silent one: nothing reads it, so whatever it says simply
+		# never prints. Say so rather than let it vanish.
+		stray = [field for field in ROLE_FIELDS if field in entry]
+		if stray:
+			warn_or_fail(
+				f"Experience entry for '{entry.get('company')}' carries both roles[] and "
+				f"top-level {', '.join(stray)}",
+				strict, "; the top-level field(s) will not be rendered",
+			)
+	else:
+		roles = [{field: entry[field] for field in ROLE_FIELDS if field in entry}]
+
+	if not roles:
+		warn_or_fail(
+			f"Experience entry for '{entry.get('company')}' has no roles",
+			strict, "; it will render as an employer with no positions",
+		)
+
+	group = {key: value for key, value in entry.items() if key not in ROLE_FIELDS and key != "roles"}
+	group["roles"] = roles
+	group["span"] = role_span(roles)
+	return group
+
+def flatten_roles(experience: list) -> list:
+	"""Re-expand grouped entries into one self-contained block per role.
+
+	classic prints a company header once and nests its roles under it. ats and
+	txt deliberately do not: a resume parser keys on a company/title/dates
+	triple appearing on consecutive lines, and a lone header with two roles
+	beneath it is exactly the shape that makes it attribute both to the first
+	title, or drop the earlier role entirely -- the failure the ats layout
+	exists to avoid.
+
+	Flattening here rather than nesting a second loop in each of those two
+	templates keeps their bodies literally the markup they were before grouping
+	existed, so their text layer is provably unchanged. That text layer is the
+	whole artefact as far as a scanner is concerned.
+	"""
+	return [
+		{
+			**role,
+			"company": entry.get("company"),
+			"location": role.get("location") or entry.get("location"),
+		}
+		for entry in experience
+		for role in entry.get("roles", [])
+	]
+
 def main():
 	parser = argparse.ArgumentParser(description="Generate CV from JSON using Jinja2 + LaTeX")
 	parser.add_argument("--input", "-i", default="data/cv.json", help="Path to the input JSON file")
@@ -288,6 +401,19 @@ def main():
 	# their truthiness guards still agree on both shapes.
 	if isinstance(data.get("personal"), dict):
 		data["personal"]["nationality"] = parse_nationality(data["personal"].get("nationality"))
+
+	# An entry may hold several roles at one employer (a promotion), or the
+	# older flat one-role-per-entry shape. Collapse both to the same company
+	# node here, before anything below reads the list, so every later step and
+	# every template sees exactly one shape.
+	# Guarded rather than data.get(..., []): a dataset with no experience at all
+	# (the ats contact-block test builds one) should stay without the key rather
+	# than gain an empty list nothing asked for.
+	if "experience" in data:
+		data["experience"] = [
+			normalize_experience(entry, args.strict)
+			for entry in data["experience"]
+		]
 
 	# Companies are declared once in a top-level list and referenced from each
 	# experience entry by short_name, so the same employer isn't duplicated
@@ -354,7 +480,7 @@ def main():
 	if args.rules_override:
 		market.update(parse_rules_override(args.rules_override, valid_rule_keys, args.strict))
 
-	# languages[].level is data as a 0-4 integer; resolve it to the display
+	# languages[].level is data as a 0-6 integer; resolve it to the display
 	# string here so every layout's template just reads a plain value, the
 	# same shape it always has.
 	language_scale = LANGUAGE_LEVEL_LABELS[LANGUAGE_SCALE_BY_MARKET.get(args.market, DEFAULT_LANGUAGE_SCALE)]
@@ -363,7 +489,7 @@ def main():
 		label = language_scale.get(level)
 		if label is None:
 			warn_or_fail(
-				f"Unknown language level {level!r} for '{lang.get('name')}' (expected an integer 0-4)",
+				f"Unknown language level {level!r} for '{lang.get('name')}' (expected an integer 0-6)",
 				args.strict, "; showing the raw value",
 			)
 			label = str(level)
@@ -398,6 +524,7 @@ def main():
 	env.filters["as_date"] = as_date
 	env.filters["latex_escape"] = latex_escape
 	env.filters["simplify_remote_location"] = simplify_remote_location
+	env.filters["flatten_roles"] = flatten_roles
 	env.globals["now"] = datetime.now(timezone.utc)
 	env.globals["parse_duration"] = parse_duration
 	env.globals["commit_sha"] = args.commit_sha
