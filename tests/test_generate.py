@@ -730,10 +730,15 @@ class TestRoleGrouping:
 
 	def test_classic_shows_the_combined_span_and_total_tenure(self, tmp_path, monkeypatch):
 		# The number the two-entry spelling never stated: the reader had to
-		# add the roles up themselves.
+		# add the roles up themselves. Span and tenure share the header line --
+		# on separate lines the tenure read as a wrapped continuation of the
+		# span rather than as the employer's total, so this asserts the one
+		# line, not the two figures independently.
 		tex = run_main(tmp_path, monkeypatch, "--layout", "classic")
-		assert f"{{\\bf {self.COMPANY}}}, {{\\sl Bern, CH}} \\hfill {{\\sl January 2021 -- June 2023}}" in tex
-		assert "{\\sl (2 years, 5 months)}" in tex
+		assert (
+			f"{{\\bf {self.COMPANY}}}, {{\\sl Bern, CH}} \\hfill "
+			"{\\sl January 2021 -- June 2023 (2 years, 5 months)}"
+		) in tex
 
 	def test_classic_keeps_each_role_dated_in_its_own_right(self, tmp_path, monkeypatch):
 		tex = run_main(tmp_path, monkeypatch, "--layout", "classic")
@@ -752,18 +757,18 @@ class TestRoleGrouping:
 			assert title in rendered
 
 	def test_a_grouped_employer_without_a_url_still_gets_its_tenure(self, tmp_path, monkeypatch):
-		# The tenure normally rides on the URL line. With no URL it needs a line
-		# of its own, and \hfill cannot right-align it there: \\ is a forced
-		# break and glue following a break is discarded, so the number would
-		# collapse flush left. No sample or real employer is URL-less, so
-		# nothing else would catch that.
+		# The tenure rides on the header line, so a URL-less employer keeps it
+		# and simply drops the line below -- no stray empty link, and no line
+		# holding nothing but a right-aligned number. No sample or real
+		# employer is URL-less, so nothing else would catch that.
 		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
 		data["companies"][1]["url"] = ""
 		specials = tmp_path / "specials.json"
 		specials.write_text(json.dumps(data), encoding="utf-8")
 		tex = run_main(tmp_path, monkeypatch, "--layout", "classic", input_json=specials)
-		assert "\\hspace*{\\fill}{\\sl (2 years, 5 months)}" in tex
+		assert "January 2021 -- June 2023 (2 years, 5 months)" in tex
 		assert "\\href{  }{  }" not in tex
+		assert "{\\sl — }" not in tex
 
 	def test_grouped_role_fields_are_escaped(self, tmp_path, monkeypatch):
 		# The grouped branch of classic/sections/experience.j2 is new markup,

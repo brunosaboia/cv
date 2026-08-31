@@ -50,17 +50,18 @@
 	{%- endif %}
 	{{- role_body(role) }}
 {%- else %}
-	{\bf {{ item.company.name | latex_escape }}}, {\sl {{ item.location | latex_escape }}} \hfill {\sl {{ item.span.start | as_date(fmt_month_year) }} -- {{ item.span.end | as_date(fmt_month_year) }}} \\
-	{#- The total tenure at the employer rides on the URL line, where the
-	   single-role branch puts the per-role duration. It is the one number the
-	   old two-entry spelling never stated: the reader had to add the roles up. #}
+	{#- Span and total tenure share the header line. The tenure used to ride
+	   on the URL line below, which stacked three right-aligned date-ish figures
+	   on three consecutive lines -- span, total, then the first role's own
+	   dates -- and the lone "(3 years)" read as a wrapped continuation of the
+	   span above it rather than as the employer's total. Kept together, the
+	   header states the employer's dates once and completely, and every other
+	   right-aligned figure on the block belongs to exactly one role. It is
+	   still the one number the old two-entry spelling never stated: the reader
+	   had to add the roles up. #}
+	{\bf {{ item.company.name | latex_escape }}}, {\sl {{ item.location | latex_escape }}} \hfill {\sl {{ item.span.start | as_date(fmt_month_year) }} -- {{ item.span.end | as_date(fmt_month_year) }} ({{ parse_duration(item.span.start, item.span.end) }})} \\
 	{%- if item.company.url %}
-	{\sl — {% if links %}\href{ {{ item.company.url }} }{ {{ item.company.url }} }{% else %}\weburl{ {{- item.company.url -}} }{% endif %}} \hfill {\sl ({{ parse_duration(item.span.start, item.span.end) }})} \\
-	{%- else %}
-	{#- \hspace*{\fill}, not \hfill: \\ is a forced break, and glue that follows
-	   a break is discarded -- a bare \hfill here would collapse and leave the
-	   tenure flush left. The star form emits an empty box first, so it stays. #}
-	\hspace*{\fill}{\sl ({{ parse_duration(item.span.start, item.span.end) }})} \\
+	{\sl — {% if links %}\href{ {{ item.company.url }} }{ {{ item.company.url }} }{% else %}\weburl{ {{- item.company.url -}} }{% endif %}} \\
 	{%- endif %}
 	{#- The blurb describes the employer, so in the grouped case it goes above
 	   the roles rather than trailing one of them. #}
