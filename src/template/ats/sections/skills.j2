@@ -1,12 +1,11 @@
-{# Flat, comma-separated keyword lines under an explicit label: this is the shape
-   skill extractors are built around, and "Name (N yrs)" is the conventional way
-   to state experience per skill. Spoken languages are their own section. #}
-{% if skills.programming %}
-\textbf{Programming Languages:} {% for s in skills.programming %}{{ s.name | latex_escape }} ({{ s.years }} yr{% if s.years != 1 %}s{% endif %}){% if not loop.last %}, {% endif %}{% endfor %}
-{% endif %}
-{% if skills.technologies %}
-\textbf{Technologies:} {% for t in skills.technologies %}{{ t.name | latex_escape }} ({{ t.years }} yr{% if t.years != 1 %}s{% endif %}){% if not loop.last %}, {% endif %}{% endfor %}
-{% endif %}
-{% if skills.other %}
-\textbf{Other Skills:} {{ skills.other | join(', ') | latex_escape }}
-{% endif %}
+{# Flat, comma-separated keyword lines under an explicit label: this is the
+   shape skill extractors are built around. The labels come from the data (an
+   ordered list of {label, items} groups), so a scanner sees one line per
+   domain rather than three fixed buckets. Spoken languages are their own
+   section.
+
+   group["items"], not group.items -- Jinja resolves attributes first, and on
+   a dict `.items` is the built-in method. #}
+{% for group in skills %}
+\textbf{ {{- group.label | latex_escape -}} :} {{ group["items"] | join(', ') | latex_escape }}
+{% endfor %}

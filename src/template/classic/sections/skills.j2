@@ -1,18 +1,16 @@
-\textbf{Programming-related skills:}
-		\begin{itemize}
-			{% for s in skills.programming %}
-				\item {{ s.name | latex_escape }} ({{ s.years }} yr{% if s.years != 1 %}s{% endif %})
-			{% endfor %}
-		\end{itemize}
-\textbf{Technologies:}
-		\begin{itemize}
-			{% for t in skills.technologies %}
-				\item {{ t.name | latex_escape }} ({{ t.years }} yr{% if t.years != 1 %}s{% endif %})
-			{% endfor %}
-		\end{itemize}
-\textbf{Other skills:}
-		\begin{itemize}
-			{% for o in skills.other %}
-				\item {{ o }}
-			{% endfor %}
-		\end{itemize}
+{# Skills are an ordered list of {label, items} groups, so the categories and
+   their order live in the data, not here. Both the headings and the grouping
+   change without touching this file.
+
+   One comma-separated paragraph per group, not an \itemize: with the section
+   grouped by domain the real CV carries ~65 entries, and one \item per entry
+   is ~65 lines -- a full page of single-word bullets that costs a page and
+   reads worse than the prose form. \parskip (\cvitemskip) separates the
+   groups, matching every other section's rhythm.
+
+   group["items"] is subscripted deliberately: Jinja resolves attributes before
+   keys, and on a dict `.items` is the built-in method, so `group.items` would
+   silently render a bound method instead of the list. #}
+{% for group in skills %}
+\textbf{ {{- group.label | latex_escape -}} :} {{ group["items"] | join(', ') | latex_escape }}
+{% endfor %}

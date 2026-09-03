@@ -354,6 +354,62 @@ def flatten_roles(experience: list) -> list:
 		for role in entry.get("roles", [])
 	]
 
+# The legacy skills shape: three fixed buckets, the first two holding
+# {name, years} objects, with each layout hardcoding its own three headings.
+# The pairing is (data key, heading it becomes) -- ats/txt wording, since it
+# is the more conventional phrasing of the two the layouts used to disagree on.
+LEGACY_SKILL_GROUPS = (
+	("programming", "Programming Languages"),
+	("technologies", "Technologies"),
+	("other", "Other Skills"),
+)
+
+def _legacy_skill_item(entry) -> str:
+	"""One legacy {name, years} object as the text its item renders to.
+
+	The years are folded into the string rather than dropped, so a dataset on
+	the old shape renders exactly what it rendered before.
+	"""
+	if not isinstance(entry, dict):
+		return str(entry)
+	name = entry.get("name", "")
+	years = entry.get("years")
+	if years is None:
+		return name
+	return f"{name} ({years} yr{'' if years == 1 else 's'})"
+
+def normalize_skills(skills) -> list:
+	"""Reshape the skills block into an ordered list of {label, items} groups.
+
+	Skills used to be three hardcoded buckets -- programming, technologies,
+	other -- and every layout spelled its own headings inline. That fixed the
+	categories in the templates, so grouping by domain (cloud, data, AI/ML)
+	meant editing three templates rather than the data. The list-of-groups
+	shape moves both the categories and their order into the JSON, where they
+	belong, and leaves the templates a single loop.
+
+	The old dict is still accepted and still prints its years, because cv is
+	deployed from its default branch against whatever cv-data is live: in the
+	window between a generator push and the data push that follows it, this
+	function is the only thing standing between the old data and an empty
+	Skills section. It reads exactly the three keys the old shape had -- it is
+	a shim for a closed format, not a second format to maintain.
+
+	Empty groups are dropped rather than rendered as a heading with nothing
+	under it, which is what the old templates' per-bucket `{% if %}` did.
+	"""
+	if isinstance(skills, list):
+		return [group for group in skills if group.get("items")]
+	if not isinstance(skills, dict):
+		return []
+
+	groups = []
+	for key, label in LEGACY_SKILL_GROUPS:
+		items = [_legacy_skill_item(entry) for entry in skills.get(key) or []]
+		if items:
+			groups.append({"label": label, "items": items})
+	return groups
+
 def main():
 	parser = argparse.ArgumentParser(description="Generate CV from JSON using Jinja2 + LaTeX")
 	parser.add_argument("--input", "-i", default="data/cv.json", help="Path to the input JSON file")
@@ -409,6 +465,12 @@ def main():
 	# Guarded rather than data.get(..., []): a dataset with no experience at all
 	# (the ats contact-block test builds one) should stay without the key rather
 	# than gain an empty list nothing asked for.
+	# Skills are an ordered list of {label, items} groups. The legacy
+	# three-bucket dict normalizes to the same thing here, so no template
+	# branches on which shape the JSON used.
+	if "skills" in data:
+		data["skills"] = normalize_skills(data["skills"])
+
 	if "experience" in data:
 		data["experience"] = [
 			normalize_experience(entry, args.strict)

@@ -205,57 +205,24 @@
 			}
 		]
 	},
-	"skills": {
-		"programming": [
-			{
-				"name": "Python",
-				"years": 8
-			},
-			{
-				"name": "JavaScript",
-				"years": 6
-			},
-			{
-				"name": "C++",
-				"years": 5
-			},
-			{
-				"name": "TypeScript",
-				"years": 4
-			},
-			{
-				"name": "Rust",
-				"years": 2
-			}
-		],
-		"technologies": [
-			{
-				"name": "Machine Learning",
-				"years": 6
-			},
-			{
-				"name": "DevOps",
-				"years": 5
-			},
-			{
-				"name": "Cloud Architecture",
-				"years": 4
-			},
-			{
-				"name": "LLM",
-				"years": 1
-			}
-		],
-		"other": [
-			"Operating Systems (Linux, Windows)",
-			"Git and CI/CD tools",
-			"Scientific Writing",
-			"Agile/Scrum",
-			"Data Engineering",
-			"Machine Vision",
-			"Prompt Engineering"
-		]
-	},
+	"skills": [
+		{
+			"label": "Programming Languages",
+			"items": ["Python", "JavaScript", "C++", "TypeScript", "Rust"]
+		},
+		{
+			"label": "AI & ML",
+			"items": ["Machine Learning", "LLM", "Prompt Engineering", "Machine Vision"]
+		},
+		{
+			"label": "Cloud & DevOps",
+			"items": ["Cloud Architecture", "DevOps", "Git and CI/CD tools"]
+		},
+		{
+			"label": "Other",
+			"items": ["Operating Systems (Linux, Windows)", "Data Engineering", "Scientific Writing", "Agile/Scrum"]
+		}
+	],
 	"languages": [
 		{
 			"name": "English",

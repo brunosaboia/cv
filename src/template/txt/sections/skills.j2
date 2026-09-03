@@ -1,9 +1,6 @@
-{% if skills.programming %}
-Programming Languages: {% for s in skills.programming %}{{ s.name }} ({{ s.years }} yr{% if s.years != 1 %}s{% endif %}){% if not loop.last %}, {% endif %}{% endfor +%}
-{% endif %}
-{% if skills.technologies %}
-Technologies: {% for t in skills.technologies %}{{ t.name }} ({{ t.years }} yr{% if t.years != 1 %}s{% endif %}){% if not loop.last %}, {% endif %}{% endfor +%}
-{% endif %}
-{% if skills.other %}
-Other Skills: {{ skills.other | join(', ') }}
-{% endif %}
+{# One line per {label, items} group, labels and order taken from the data.
+   group["items"], not group.items -- on a dict, Jinja resolves `.items` to
+   the built-in method before it looks for the key. #}
+{% for group in skills %}
+{{ group.label }}: {{ group["items"] | join(', ') }}
+{% endfor %}

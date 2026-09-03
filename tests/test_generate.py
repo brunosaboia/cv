@@ -10,6 +10,7 @@ from generate_cv import (
 	flatten_roles,
 	main,
 	normalize_experience,
+	normalize_skills,
 	parse_nationality,
 	role_span,
 	simplify_remote_location,
@@ -802,6 +803,104 @@ class TestRoleGrouping:
 	def test_a_stray_top_level_role_field_is_fatal_under_strict(self, tmp_path, monkeypatch):
 		with pytest.raises(SystemExit):
 			run_main(tmp_path, monkeypatch, "--strict", input_json=self._with_a_stray_top_level_field(tmp_path))
+
+
+class TestSkillGroups:
+	"""Skills are an ordered list of {label, items} groups, so the categories
+	and their order live in the data instead of being hardcoded three times,
+	once per layout. The legacy three-bucket dict still normalizes to the same
+	shape, which is what lets cv render a cv-data that hasn't migrated yet --
+	the deploy checks cv out at its default branch, unpinned, so that window
+	is real rather than theoretical."""
+
+	LEGACY = {
+		"programming": [{"name": "C#", "years": 20}, {"name": "React", "years": 1}],
+		"technologies": [{"name": "DevOps", "years": 10}],
+		"other": ["Networking", "LaTeX"],
+	}
+
+	def _with_skills(self, tmp_path, skills):
+		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
+		data["skills"] = skills
+		specials = tmp_path / "skills.json"
+		specials.write_text(json.dumps(data), encoding="utf-8")
+		return specials
+
+	def test_the_new_shape_passes_through_in_the_authored_order(self):
+		groups = [
+			{"label": "Cloud & Infrastructure", "items": ["Azure", "Kubernetes"]},
+			{"label": "Programming Languages", "items": ["C#"]},
+		]
+		# Nothing here sorts skills: the file's order is the rendered order,
+		# the same contract experience[] has.
+		assert [group["label"] for group in normalize_skills(groups)] == [
+			"Cloud & Infrastructure", "Programming Languages",
+		]
+
+	def test_an_empty_group_is_dropped_rather_than_rendered_as_a_bare_heading(self):
+		# What the old templates' per-bucket {% if %} did, kept.
+		groups = [{"label": "Empty", "items": []}, {"label": "Real", "items": ["C#"]}]
+		assert [group["label"] for group in normalize_skills(groups)] == ["Real"]
+
+	def test_the_legacy_dict_becomes_three_labelled_groups(self):
+		assert [group["label"] for group in normalize_skills(self.LEGACY)] == [
+			"Programming Languages", "Technologies", "Other Skills",
+		]
+
+	def test_the_legacy_dict_keeps_its_years_in_the_item_text(self):
+		# A dataset on the old shape renders what it rendered before, not a
+		# silently de-yeared version of itself.
+		groups = normalize_skills(self.LEGACY)
+		assert groups[0]["items"] == ["C# (20 yrs)", "React (1 yr)"]
+		assert groups[2]["items"] == ["Networking", "LaTeX"]
+
+	def test_a_legacy_bucket_that_is_absent_produces_no_group(self):
+		assert [group["label"] for group in normalize_skills({"other": ["Networking"]})] == [
+			"Other Skills",
+		]
+
+	def test_a_skills_block_that_is_neither_shape_yields_nothing(self):
+		assert normalize_skills(None) == []
+		assert normalize_skills("Python, C#") == []
+
+	@pytest.mark.parametrize("layout", ("classic", "ats", "txt"))
+	def test_every_layout_renders_the_label_and_its_items(self, tmp_path, monkeypatch, layout):
+		rendered = run_main(
+			tmp_path, monkeypatch, "--layout", layout,
+			input_json=self._with_skills(tmp_path, [
+				{"label": "Data & Events", "items": ["Kafka", "Elasticsearch"]},
+			]),
+		)
+		assert "Data" in rendered and "Events" in rendered
+		assert "Kafka" in rendered and "Elasticsearch" in rendered
+
+	@pytest.mark.parametrize("layout", ("classic", "ats", "txt"))
+	def test_items_is_read_as_a_key_and_never_as_the_dict_method(self, tmp_path, monkeypatch, layout):
+		# Jinja resolves attributes before keys, so `group.items` on a dict is
+		# the built-in method, not the list -- it renders as a bound-method
+		# repr instead of the skills, in every layout at once. The templates
+		# subscript instead; this is the guard that keeps them doing so.
+		rendered = run_main(
+			tmp_path, monkeypatch, "--layout", layout,
+			input_json=self._with_skills(tmp_path, [
+				{"label": "Programming Languages", "items": ["Kotlin"]},
+			]),
+		)
+		assert "built-in method" not in rendered
+		assert "dict_items" not in rendered
+		assert "Kotlin" in rendered
+
+	def test_an_ampersand_in_a_label_is_escaped_for_latex(self, tmp_path, monkeypatch):
+		# Domain headings are prose now, so they hit the escaper like any other
+		# free text: an unescaped & is a LaTeX alignment character and aborts
+		# the pdflatex run.
+		tex = run_main(
+			tmp_path, monkeypatch,
+			input_json=self._with_skills(tmp_path, [
+				{"label": "Cloud & Infrastructure", "items": ["Azure"]},
+			]),
+		)
+		assert "Cloud \\& Infrastructure" in tex
 
 
 class TestWellKnownCompanies:
