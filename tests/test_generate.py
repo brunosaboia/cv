@@ -741,10 +741,26 @@ class TestRoleGrouping:
 			"{\\sl January 2021 -- June 2023 (2 years, 5 months)}"
 		) in tex
 
-	def test_classic_keeps_each_role_dated_in_its_own_right(self, tmp_path, monkeypatch):
+	def test_classic_dates_each_role_but_leaves_the_duration_to_the_employer(self, tmp_path, monkeypatch):
+		# Every role keeps its own dates, but not its own parenthesised
+		# duration: the employer's span and tenure sitting a line above the
+		# first role's dates and duration read as one confused pair rather
+		# than as a total and the first part of it. Exactly one duration in
+		# the block, the employer's; each role line answers only "when".
 		tex = run_main(tmp_path, monkeypatch, "--layout", "classic")
-		assert "March 2022 -- June 2023 (1 year, 3 months)" in tex
-		assert "January 2021 -- March 2022 (1 year, 2 months)" in tex
+		assert "{\\sl March 2022 -- June 2023} \\\\[\\cvsubitemskip]" in tex
+		assert "{\\sl January 2021 -- March 2022} \\\\[\\cvsubitemskip]" in tex
+		assert "March 2022 -- June 2023 (1 year, 3 months)" not in tex
+		assert "January 2021 -- March 2022 (1 year, 2 months)" not in tex
+
+	def test_classic_spaces_every_role_the_same_including_the_first(self, tmp_path, monkeypatch):
+		# \cvroleskip used to ride only on the gap *after* a role, so the
+		# first role sat one baseline under the header while every later one
+		# floated two -- the same employer's roles spaced two different ways.
+		# One skip per role now: whichever header line comes last carries the
+		# first role's, and each role body carries the next one's.
+		tex = run_main(tmp_path, monkeypatch, "--layout", "classic")
+		assert tex.count("\\\\[\\cvroleskip]") == len(self.TITLES)
 
 	@pytest.mark.parametrize("layout", ["ats", "txt"])
 	def test_ats_and_txt_repeat_the_employer_per_role(self, tmp_path, monkeypatch, layout):

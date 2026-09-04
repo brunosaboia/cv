@@ -50,30 +50,36 @@
 	{%- endif %}
 	{{- role_body(role) }}
 {%- else %}
-	{#- Span and total tenure share the header line. The tenure used to ride
-	   on the URL line below, which stacked three right-aligned date-ish figures
-	   on three consecutive lines -- span, total, then the first role's own
-	   dates -- and the lone "(3 years)" read as a wrapped continuation of the
-	   span above it rather than as the employer's total. Kept together, the
-	   header states the employer's dates once and completely, and every other
-	   right-aligned figure on the block belongs to exactly one role. It is
-	   still the one number the old two-entry spelling never stated: the reader
-	   had to add the roles up. #}
-	{\bf {{ item.company.name | latex_escape }}}, {\sl {{ item.location | latex_escape }}} \hfill {\sl {{ item.span.start | as_date(fmt_month_year) }} -- {{ item.span.end | as_date(fmt_month_year) }} ({{ parse_duration(item.span.start, item.span.end) }})} \\
+	{#- Span and total tenure share the header line, and they are the only
+	   parenthesised figure in the group: each role below states its own dates
+	   but not its own duration. Two right-aligned ranges a line apart -- the
+	   employer's "May 2022 -- May 2025 (3 years)" sitting directly over the
+	   first role's "May 2024 -- May 2025 (1 year)" -- read as one confused
+	   pair rather than as a total and the first part of it. With the
+	   per-role parenthetical gone there is exactly one duration in the block,
+	   the employer's, and every role line answers only "when". #}
+	{%- set has_blurb = item.company.description and item.company.show_description %}
+	{#- \cvroleskip goes before every role, not only between them. It used to
+	   ride solely on the gap after a role, so the first role sat one baseline
+	   under the URL line while every later one floated two -- the same
+	   employer's roles spaced two different ways, the first cramped and the
+	   rest adrift. Hanging it off whichever header line comes last puts every
+	   role in the group the same distance below what precedes it. #}
+	{\bf {{ item.company.name | latex_escape }}}, {\sl {{ item.location | latex_escape }}} \hfill {\sl {{ item.span.start | as_date(fmt_month_year) }} -- {{ item.span.end | as_date(fmt_month_year) }} ({{ parse_duration(item.span.start, item.span.end) }})} \\{% if not item.company.url and not has_blurb %}[\cvroleskip]{% endif %}
 	{%- if item.company.url %}
-	{\sl — {% if links %}\href{ {{ item.company.url }} }{ {{ item.company.url }} }{% else %}\weburl{ {{- item.company.url -}} }{% endif %}} \\
+	{\sl — {% if links %}\href{ {{ item.company.url }} }{ {{ item.company.url }} }{% else %}\weburl{ {{- item.company.url -}} }{% endif %}} \\{% if not has_blurb %}[\cvroleskip]{% endif %}
 	{%- endif %}
 	{#- The blurb describes the employer, so in the grouped case it goes above
 	   the roles rather than trailing one of them. #}
-	{%- if item.company.description and item.company.show_description %}
+	{%- if has_blurb %}
 	\\
-	{{ item.company.description | latex_escape }} \\
+	{{ item.company.description | latex_escape }} \\[\cvroleskip]
 	{%- endif %}
 	{%- for role in item.roles %}
 	{#- Only the title line is indented. The description, bullets and
 	   technologies stay flush so a wrapped paragraph keeps a straight left
 	   edge; res.cls has no indentation helper to reuse for this. #}
-	\hspace*{\cvroleindent}{\sl {{ role.title | latex_escape }} } \hfill {\sl {{ role.duration.start | as_date(fmt_month_year) }} -- {{ role.duration.end | as_date(fmt_month_year) }} ({{ parse_duration(role.duration.start, role.duration.end) }})} \\[\cvsubitemskip]
+	\hspace*{\cvroleindent}{\sl {{ role.title | latex_escape }} } \hfill {\sl {{ role.duration.start | as_date(fmt_month_year) }} -- {{ role.duration.end | as_date(fmt_month_year) }}} \\[\cvsubitemskip]
 	{{- role_body(role, '' if loop.last else '[\\cvroleskip]') }}
 	{%- endfor %}
 {%- endif %}
