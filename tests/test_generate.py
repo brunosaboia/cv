@@ -23,8 +23,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 # today and the rendered string grows by a month every month. Match its shape,
 # not one month's arithmetic. Only classic prints this parenthetical at all
 # (see TestClassicLayout) -- ats/txt deliberately omit it, see their layout
-# test classes below.
-ONGOING_DURATION = re.compile(r"\{\\sl \(\d+ years?(?:, \d+ months?)?\)\}")
+# test classes below. The duration shares its group with the date range it
+# belongs to: both branches state an employer's dates once, on its first line.
+ONGOING_DURATION = re.compile(r"\{\\sl [^{}]+ \(\d+ years?(?:, \d+ months?)?\)\}")
 
 
 def run_main(tmp_path, monkeypatch, *extra_args, input_json=None):
@@ -163,6 +164,15 @@ class TestClassicLayout:
 	def test_dates_include_the_computed_duration(self, tmp_path, monkeypatch):
 		tex = run_main(tmp_path, monkeypatch)
 		assert ONGOING_DURATION.search(tex)
+
+	def test_the_duration_rides_with_the_dates_not_alone_on_the_title_line(self, tmp_path, monkeypatch):
+		# A single-role entry used to right-align a bare "(9 months)" on its
+		# title line while the range sat on the employer line above, so the
+		# same two facts lived in two different places depending only on
+		# whether the employer had one role or several. Nothing right-aligns a
+		# lone parenthetical any more.
+		tex = run_main(tmp_path, monkeypatch)
+		assert "\\hfill {\\sl (" not in tex
 
 
 class TestAtsLayoutIsParseable:
@@ -727,7 +737,10 @@ class TestRoleGrouping:
 		assert tex.count(self.BLURB) == 1
 		assert tex.count("https://neuralcore.ch") == 2  # \href{ url }{ url }, one line
 		for title in self.TITLES:
-			assert f"\\hspace*{{\\cvroleindent}}{{\\sl {title} }}" in tex
+			assert f"{{\\sl {title} }}" in tex
+		# Flush left, like every other line in the block: the title was the one
+		# line in the entry with a different left edge.
+		assert "\\hspace*{\\cvroleindent}" not in tex
 
 	def test_classic_shows_the_combined_span_and_total_tenure(self, tmp_path, monkeypatch):
 		# The number the two-entry spelling never stated: the reader had to
@@ -738,7 +751,7 @@ class TestRoleGrouping:
 		tex = run_main(tmp_path, monkeypatch, "--layout", "classic")
 		assert (
 			f"{{\\bf {self.COMPANY}}}, {{\\sl Bern, CH}} \\hfill "
-			"{\\sl January 2021 -- June 2023 (2 years, 5 months)}"
+			"{\\sl Jan 2021 -- Jun 2023 (2 years, 5 months)}"
 		) in tex
 
 	def test_classic_dates_each_role_but_leaves_the_duration_to_the_employer(self, tmp_path, monkeypatch):
@@ -748,19 +761,19 @@ class TestRoleGrouping:
 		# than as a total and the first part of it. Exactly one duration in
 		# the block, the employer's; each role line answers only "when".
 		tex = run_main(tmp_path, monkeypatch, "--layout", "classic")
-		assert "{\\sl March 2022 -- June 2023} \\\\[\\cvsubitemskip]" in tex
-		assert "{\\sl January 2021 -- March 2022} \\\\[\\cvsubitemskip]" in tex
-		assert "March 2022 -- June 2023 (1 year, 3 months)" not in tex
-		assert "January 2021 -- March 2022 (1 year, 2 months)" not in tex
+		assert "{\\sl Mar 2022 -- Jun 2023} \\\\[\\cvsubitemskip]" in tex
+		assert "{\\sl Jan 2021 -- Mar 2022} \\\\[\\cvsubitemskip]" in tex
+		assert "Mar 2022 -- Jun 2023 (1 year, 3 months)" not in tex
+		assert "Jan 2021 -- Mar 2022 (1 year, 2 months)" not in tex
 
-	def test_classic_spaces_every_role_the_same_including_the_first(self, tmp_path, monkeypatch):
-		# \cvroleskip used to ride only on the gap *after* a role, so the
-		# first role sat one baseline under the header while every later one
-		# floated two -- the same employer's roles spaced two different ways.
-		# One skip per role now: whichever header line comes last carries the
-		# first role's, and each role body carries the next one's.
+	def test_classic_separates_roles_but_does_not_gap_the_first_one(self, tmp_path, monkeypatch):
+		# \cvroleskip sits between one role and the next and nowhere else: one
+		# skip for a two-role group, not two. With no gap and no indent the
+		# first role sits under its employer exactly as a single-role entry's
+		# title does, so both branches open identically and only a *second*
+		# role costs any extra space.
 		tex = run_main(tmp_path, monkeypatch, "--layout", "classic")
-		assert tex.count("\\\\[\\cvroleskip]") == len(self.TITLES)
+		assert tex.count("\\\\[\\cvroleskip]") == len(self.TITLES) - 1
 
 	@pytest.mark.parametrize("layout", ["ats", "txt"])
 	def test_ats_and_txt_repeat_the_employer_per_role(self, tmp_path, monkeypatch, layout):
@@ -783,7 +796,7 @@ class TestRoleGrouping:
 		specials = tmp_path / "specials.json"
 		specials.write_text(json.dumps(data), encoding="utf-8")
 		tex = run_main(tmp_path, monkeypatch, "--layout", "classic", input_json=specials)
-		assert "January 2021 -- June 2023 (2 years, 5 months)" in tex
+		assert "Jan 2021 -- Jun 2023 (2 years, 5 months)" in tex
 		assert "\\href{  }{  }" not in tex
 		assert "{\\sl — }" not in tex
 

@@ -88,13 +88,6 @@
 \cvheaderskip=1.2\baselineskip plus 3pt minus 2pt
 \sectionskip=\cvsectionskip
 
-% How far a role's title line is pushed in under its employer's header. Only
-% the title moves: its description, bullets and technologies stay flush left so
-% a wrapped paragraph keeps a straight edge. A dimen rather than a skip -- an
-% indent is a fixed distance and must not stretch with the line.
-\newdimen\cvroleindent
-\cvroleindent=1em
-
 % Item-to-item separation (each employer in Experience, each degree in Education)
 % is an ordinary blank-line paragraph break in those templates, so it is
 % \parskip -- not \sectionskip -- that drives it. res.cls sets \parskip to a
@@ -125,7 +118,13 @@
 \makeatother
 
 {% set fmt_year = "%Y" %}
-{% set fmt_month_year = "%B %Y" %}
+{#- Abbreviated, not "%B": the employer line carries name, location, dates
+   and duration, and at this 5.2in measure full month names push five of
+   the real CV's fourteen employers past the margin, each spilling a
+   fragment ("months)") onto its own line and costing a page. Applied to
+   the whole layout rather than to Experience alone so Education, Awards
+   and Publications keep the same date style. ats and txt set their own. #}
+{% set fmt_month_year = "%b %Y" %}
 {% set fmt_full_date = "%d.%m.%Y" %}
 
 \begin{document}
