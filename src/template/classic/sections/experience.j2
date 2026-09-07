@@ -1,93 +1,61 @@
-{#- A role's body -- description, achievement bullets, technologies -- reads the
-   same whether it hangs off a lone role or is one of several under a shared
-   company header, so it is written once here rather than twice below.
+{#- One self-contained block per role: title, employer, website, then the body.
 
-   trailing_skip is appended to the closing \\ so the grouped branch can widen
-   the gap after every role but the last (\\[\cvroleskip]). It defaults to
-   empty, which is what makes the single-role branch emit the bare \\ it always
-   has -- this file has to reproduce today's .tex byte for byte for every
-   single-role entry, or the whole PDF reflows around the one that changed. #}
-{%- macro role_body(role, trailing_skip='') -%}
-{%- if role.description %}
-	\\
-	{{ role.description | latex_escape }}
-{%- endif %}
-{%- if role.achievements %}
-	\begin{itemize}
-		{%- for achievement in role.achievements %}
-		\item {{ achievement | latex_escape }}
-		{%- endfor %}
-	\end{itemize}
-{%- else %}
-	\\
-{%- endif %}
-	{\sl Technologies: {{ role.technologies | join(', ') | latex_escape }} }
-	\\{{ trailing_skip }}
-{%- endmacro -%}
-{% for item in experience %}
-{#- One employer, one header. An entry that holds a single role is rendered
-   exactly as it was before roles[] existed; only an employer with several
-   roles (a promotion) takes the grouped branch, where the header carries the
-   combined span and total tenure and each role hangs below it. ats and txt
-   deliberately do the opposite and repeat the header per role -- see
-   flatten_roles in generate_cv.py. #}
-{%- if item.roles | length == 1 %}
-{%- set role = item.roles[0] %}
-	{#- Dates and duration ride together on the employer line, exactly as the
-	   grouped branch's span and tenure do. They used to be split -- range
-	   here, a lone "(9 months)" right-aligned on the title line below --
-	   which put the same two facts in two different places depending only on
-	   whether the employer happened to have one role or several. Bruno:
-	   "make everything to be on the right side". Every employer block now
-	   states its dates once, completely, on its first line. #}
-	{\bf {{ item.company.name | latex_escape }}}, {\sl {{ item.location | latex_escape }}} \hfill {\sl {{ role.duration.start | as_date(fmt_month_year) }} -- {{ role.duration.end | as_date(fmt_month_year) }} ({{ parse_duration(role.duration.start, role.duration.end) }})} \\
+   classic used to nest an employer's roles under a single company header. With
+   the title on top there is nowhere left for such a header to go -- a header
+   can only precede what it heads -- so classic now flattens through
+   flatten_roles exactly as ats and txt already did, and a promotion prints as
+   two blocks that repeat the employer. Bruno chose that over keeping the group
+   and leaving the second role a bare title line: every block then states the
+   same three things in the same order, and no entry is a special case of
+   another.
+
+   What that gives up is the employer's combined tenure -- BIS's "(3 years)"
+   across both roles -- which no longer has a line of its own to sit on. Each
+   block states its own dates and duration and the reader adds them up, which
+   is what ats and txt have always asked of them. #}
+{% for item in experience | flatten_roles %}
+	{#- Title bold, employer italic, dates right-aligned on the title line:
+	   they date the title, and the employer line below reads the same
+	   whichever of its roles it sits under. The weight difference is what
+	   separates the two lines; the title used to be indented for that job,
+	   which left it the one line in the entry with a different left edge. #}
+	{\bf {{ item.title | latex_escape }}} \hfill {\sl {{ item.duration.start | as_date(fmt_month_year) }} -- {{ item.duration.end | as_date(fmt_month_year) }} ({{ parse_duration(item.duration.start, item.duration.end) }})} \\
+	{#- \cvsubitemskip tightens the last header line into the body, so it rides
+	   on the website line when there is one and falls back to this one when
+	   there is not. #}
+	{\sl {{ item.company.name | latex_escape }}{% if item.location %}, {{ item.location | latex_escape }}{% endif %}} \\{% if not item.company.url %}[\cvsubitemskip]{% endif %}
 	{%- if item.company.url %}
-	{\sl — {% if links %}\href{ {{ item.company.url }} }{ {{ item.company.url }} }{% else %}\weburl{ {{- item.company.url -}} }{% endif %}} \\
+	{\sl — {% if links %}\href{ {{ item.company.url }} }{ {{ item.company.url }} }{% else %}\weburl{ {{- item.company.url -}} }{% endif %}} \\[\cvsubitemskip]
 	{%- endif %}
-	{\sl {{ role.title | latex_escape }} } \\[\cvsubitemskip]
 	{#- A household name (Google, a national central bank, ...) doesn't need a
 	   blurb explaining what it is; that space is better spent on the role
 	   itself. company.show_description is resolved once in generate_cv.py
 	   from companies[].is_well_known and the build-wide --company-descriptions
 	   level (min/mid/max) -- read the one flag here rather than either input
-	   separately. #}
+	   separately.
+
+	   Flattening prints it once per role rather than once per employer, which
+	   is what ats and txt have always done. No grouped employer is blurbed at
+	   any level today (BIS, the only one, is is_well_known), so this repeats
+	   in the sample fixture at --company-descriptions max and nowhere else. #}
 	{%- if item.company.description and item.company.show_description %}
 	\\
 	{{ item.company.description | latex_escape }}
 	{%- endif %}
-	{{- role_body(role) }}
-{%- else %}
-	{#- Span and total tenure share the header line, and they are the only
-	   parenthesised figure in the group: each role below states its own dates
-	   but not its own duration. Two right-aligned ranges a line apart -- the
-	   employer's "May 2022 -- May 2025 (3 years)" sitting directly over the
-	   first role's "May 2024 -- May 2025 (1 year)" -- read as one confused
-	   pair rather than as a total and the first part of it. With the
-	   per-role parenthetical gone there is exactly one duration in the block,
-	   the employer's, and every role line answers only "when". #}
-	{%- set has_blurb = item.company.description and item.company.show_description %}
-	{#- \cvroleskip separates one role from the next and nothing else. It is
-	   deliberately not applied before the first role: with no indent and no
-	   gap, that role sits under its employer exactly as a single-role entry's
-	   title does, so the two branches open identically and only a second role
-	   costs any extra space. #}
-	{\bf {{ item.company.name | latex_escape }}}, {\sl {{ item.location | latex_escape }}} \hfill {\sl {{ item.span.start | as_date(fmt_month_year) }} -- {{ item.span.end | as_date(fmt_month_year) }} ({{ parse_duration(item.span.start, item.span.end) }})} \\
-	{%- if item.company.url %}
-	{\sl — {% if links %}\href{ {{ item.company.url }} }{ {{ item.company.url }} }{% else %}\weburl{ {{- item.company.url -}} }{% endif %}} \\
-	{%- endif %}
-	{#- The blurb describes the employer, so in the grouped case it goes above
-	   the roles rather than trailing one of them. #}
-	{%- if has_blurb %}
+	{%- if item.description %}
 	\\
-	{{ item.company.description | latex_escape }} \\
+	{{ item.description | latex_escape }}
 	{%- endif %}
-	{%- for role in item.roles %}
-	{#- Flush left, like every other line in the block. The title used to be
-	   pushed in by a \cvroleindent register to show it hanging under the employer,
-	   which left it as the one line in the entry with a different left edge. Bold
-	   employer against italic title already carries that distinction. #}
-	{\sl {{ role.title | latex_escape }} } \hfill {\sl {{ role.duration.start | as_date(fmt_month_year) }} -- {{ role.duration.end | as_date(fmt_month_year) }}} \\[\cvsubitemskip]
-	{{- role_body(role, '' if loop.last else '[\\cvroleskip]') }}
-	{%- endfor %}
-{%- endif %}
+	{%- if item.achievements %}
+	\begin{itemize}
+		{%- for achievement in item.achievements %}
+		\item {{ achievement | latex_escape }}
+		{%- endfor %}
+	\end{itemize}
+	{%- else %}
+	\\
+	\newline
+	{%- endif %}
+	{\sl Technologies: {{ item.technologies | join(', ') | latex_escape }} }
+	\\
 {% endfor %}

@@ -1,7 +1,13 @@
-{# Employer, role and dates on consecutive lines, all left-aligned. The classic
+{# Role, employer and dates on consecutive lines, all left-aligned. The classic
    layout pushes the dates right with \hfill, which puts them somewhere else
    entirely in the content stream -- the single biggest reason a scanner mis-reads
    tenure or drops it.
+
+   Title before employer, matching classic: it is the conventional resume order
+   and the one a parser is likeliest to have been trained on, and the triple
+   below still arrives on consecutive lines, which is the part that actually
+   drives attribution. \textbf rides with the title for the same reason it does
+   in classic -- the role is what the reader is scanning for.
 
    flatten_roles re-expands an employer that holds several roles into one block
    per role, repeating the company header each time. classic nests those roles
@@ -9,9 +15,9 @@
    filter's docstring in generate_cv.py. #}
 {% for item in experience | flatten_roles %}
 \begin{cventry}
-\textbf{ {{- item.company.name | latex_escape }}{% if item.location %}, {{ item.location | latex_escape }}{% endif -%} }
+\textbf{ {{- item.title | latex_escape -}} }
 
-{{ item.title | latex_escape }}
+{{ item.company.name | latex_escape }}{% if item.location %}, {{ item.location | latex_escape }}{% endif %}
 
 {{ item.duration.start | as_date(fmt_month_year) }} - {{ item.duration.end | as_date(fmt_month_year) }}
 {% if item.company.url %}

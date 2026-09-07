@@ -3,13 +3,17 @@
    a single header, this layout deliberately does not. See the filter's
    docstring in generate_cv.py. #}
 {% for item in experience | flatten_roles %}
-{# A remote location like "Remote (Brazil -- US)" reads fine on a page but
+{# Title before employer, matching classic and ats. What a parser keys on is
+   the company/title/dates triple arriving on consecutive lines, which it still
+   does; the order within the triple is the conventional resume one.
+
+   A remote location like "Remote (Brazil -- US)" reads fine on a page but
    confuses an ATS's location field parser, which expects a single place
    name -- collapse it to the bare "Remote" here. Other layouts are read by
    a person or a scanner that handles the parenthetical fine, so this is
    txt-only. #}
-{{ item.company.name }}{% if item.location %}, {{ item.location | simplify_remote_location }}{% endif +%}
 {{ item.title }}
+{{ item.company.name }}{% if item.location %}, {{ item.location | simplify_remote_location }}{% endif +%}
 {# No computed duration here, matching ats: a plain-text/ATS reader already
    has both dates and can work out tenure itself; the "(X years, Y months)"
    is a readability aid for a human, which is what classic is for. #}

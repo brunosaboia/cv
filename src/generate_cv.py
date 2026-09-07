@@ -258,38 +258,6 @@ def simplify_remote_location(location: str) -> str:
 # the entry, and a role only ever overrides it (see flatten_roles).
 ROLE_FIELDS = ("title", "duration", "description", "achievements", "technologies")
 
-def _is_iso_date(value) -> bool:
-	"""Whether a value is a yyyy-MM-dd string, i.e. safe to order lexically."""
-	return isinstance(value, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", value) is not None
-
-def role_span(roles: list) -> dict:
-	"""Earliest start and latest end across one company's roles.
-
-	ISO dates sort correctly as plain strings, so this needs no date parsing
-	and inherits none of strptime's failure modes. A blank or absent end means
-	the role is current, and that dominates the whole group: you have not left
-	a company you still work at, whatever the other roles say.
-
-	A date that doesn't look like a date is left out of the comparison and the
-	first role's raw value passed through instead. Malformed dates already
-	print verbatim everywhere else in this pipeline (as_date hands them back
-	unchanged, parse_duration says "Unknown duration"), and a derived span is a
-	reading convenience, not a fact worth failing a build over.
-	"""
-	starts = [role.get("duration", {}).get("start") for role in roles]
-	ends = [role.get("duration", {}).get("end") for role in roles]
-
-	usable_starts = [start for start in starts if _is_iso_date(start)]
-	start = min(usable_starts) if usable_starts else (starts[0] if starts else "")
-
-	if any(not end for end in ends):
-		end = ""
-	else:
-		usable_ends = [end for end in ends if _is_iso_date(end)]
-		end = max(usable_ends) if usable_ends else (ends[0] if ends else "")
-
-	return {"start": start, "end": end}
-
 def normalize_experience(entry: dict, strict: bool = False) -> dict:
 	"""Reshape one experience entry into a company node holding roles[].
 
@@ -326,7 +294,6 @@ def normalize_experience(entry: dict, strict: bool = False) -> dict:
 
 	group = {key: value for key, value in entry.items() if key not in ROLE_FIELDS and key != "roles"}
 	group["roles"] = roles
-	group["span"] = role_span(roles)
 	return group
 
 def flatten_roles(experience: list) -> list:

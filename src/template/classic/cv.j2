@@ -56,17 +56,21 @@
 \newskip\cvsectionskip
 \cvsectionskip=2\baselineskip plus 6pt minus 3pt
 
-% Five independently tunable gaps, smallest to largest: \cvsubitemskip between
-% an entry's own header (employer/title/dates) and its body (e.g. the role
-% description or achievement bullets), \cvroleskip between two roles at the
-% same employer, \cvitemskip between entries within a section (e.g. each
-% employer in Experience, each degree in Education), \cvheaderskip between the
-% contact header and the first section, \cvsectionskip (above) between one
-% section and the next. \section always reads res.cls's own \sectionskip
-% register at call time, so the header/for loop below swaps its value to
-% \cvheaderskip only for the very first section.
+% Four independently tunable gaps, smallest to largest: \cvsubitemskip between
+% an entry's own header (title/employer/website) and its body (e.g. the role
+% description or achievement bullets), \cvitemskip between entries within a
+% section (e.g. each role in Experience, each degree in Education),
+% \cvheaderskip between the contact header and the first section,
+% \cvsectionskip (above) between one section and the next. \section always
+% reads res.cls's own \sectionskip register at call time, so the header/for
+% loop below swaps its value to \cvheaderskip only for the very first section.
+%
+% There used to be a fifth, \cvroleskip, for the gap between two roles at one
+% employer. Experience no longer nests roles under a shared header -- every
+% role is its own block, employer line and all -- so a promotion is separated
+% by \cvitemskip like any other pair of entries and the register has nothing
+% left to space.
 \newskip\cvsubitemskip
-\newskip\cvroleskip
 \newskip\cvitemskip
 \newskip\cvheaderskip
 % Negative: an entry's header-to-body break is a plain \\ within the same
@@ -75,16 +79,19 @@
 % default is what keeps it visibly tighter than the item-to-item gap even
 % though \cvitemskip itself is a small addition.
 \cvsubitemskip=-0.3\baselineskip
-% Between two roles at one employer. All three of these gaps ride on a
-% preceding \\, so they are comparable in baselines: header-to-body is
-% \\[\cvsubitemskip] plus the body's own empty \\ line (2 - 0.3 = 1.7),
-% employer-to-employer is \\ plus a blank line and so 2 + \parskip (2.4), and
-% role-to-role is the single \\ this register rides on (1 + \cvroleskip). It
-% has to beat 1.7 or a role's description reads as belonging to the role below
-% it rather than the title above it, and stay under 2.4 or a promotion reads as
-% a change of employer. One baseline lands squarely between the two.
-\cvroleskip=1\baselineskip plus 2pt minus 1pt
-\cvitemskip=0.4\baselineskip plus 2pt minus 1pt
+% Entry-to-entry. Both gaps ride on a preceding \\, so they are comparable in
+% baselines: header-to-body is \\[\cvsubitemskip] plus the body's own empty
+% \\ line (2 - 0.3 = 1.7), and entry-to-entry is \\ plus a blank line, so
+% 2 + \parskip. It has to beat 1.7, or an entry's description reads as
+% belonging to the block below it rather than the header above it.
+%
+% Lowered from 0.4 to 0.3 when Experience stopped nesting roles: the real CV's
+% one promotion now prints its employer and website twice rather than once,
+% and those two lines were enough to spill Hobbies onto a page of its own.
+% 0.3 buys them back at 2.3 baselines -- still comfortably clear of 1.7 -- and
+% incidentally reclaims the page cv-ch.pdf had gained during the achievements
+% pass. It is the whole of the page budget's slack: 0.35 leaves cv-ch at six.
+\cvitemskip=0.3\baselineskip plus 2pt minus 1pt
 \cvheaderskip=1.2\baselineskip plus 3pt minus 2pt
 \sectionskip=\cvsectionskip
 

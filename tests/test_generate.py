@@ -12,7 +12,6 @@ from generate_cv import (
 	normalize_experience,
 	normalize_skills,
 	parse_nationality,
-	role_span,
 	simplify_remote_location,
 	warn_or_fail,
 )
@@ -260,9 +259,14 @@ class TestTxtLayout:
 		# Like ats: the reader already has both dates and can work out tenure
 		# itself, so the exact line has no "(X years, Y months)" suffix -- that
 		# readability aid is classic's job.
+		#
+		# The dates follow the employer directly now that the title leads the
+		# block, which is the ordering a parser keys on: the triple still
+		# arrives on three consecutive lines.
 		lines = txt.splitlines()
 		company_line = next(i for i, l in enumerate(lines) if l.startswith("Swiss National Bank"))
-		assert lines[company_line + 2] == "June 2023 - Present"
+		assert lines[company_line - 1] == "AI Infrastructure Engineer"
+		assert lines[company_line + 1] == "June 2023 - Present"
 
 	def test_labelled_contact_fields(self, txt):
 		assert "Email: john.doe@example.com" in txt
@@ -648,10 +652,16 @@ class TestRoleGrouping:
 	one-role group, which is what lets both live in the data indefinitely and
 	what lets cv render a cv-data that hasn't adopted roles[] yet.
 
+	That grouping is now a fact about the *data* only. Every layout renders
+	one self-contained block per role: classic used to nest roles under a
+	shared company header, but with the title on the block's first line there
+	is nowhere for such a header to go, so it flattens through flatten_roles
+	like ats and txt already did.
+
 	The sample's NeuralCore entry is the grouped one -- deliberately, because
 	it is the only sample company that is not is_well_known, so its blurb
-	prints at the default level and these tests can assert it appears once in
-	classic and once per role in ats/txt."""
+	prints at the default level and these tests can assert it appears once per
+	role in all three layouts."""
 
 	COMPANY = "NeuralCore AG"
 	BLURB = "machine learning solutions for healthcare"
@@ -683,29 +693,6 @@ class TestRoleGrouping:
 		})
 		assert [role["title"] for role in entry["roles"]] == ["Senior", "Junior"]
 
-	def test_the_span_covers_every_role(self):
-		span = role_span([
-			{"duration": {"start": "2022-03-01", "end": "2023-06-01"}},
-			{"duration": {"start": "2021-01-01", "end": "2022-03-01"}},
-		])
-		assert span == {"start": "2021-01-01", "end": "2023-06-01"}
-
-	def test_an_ongoing_role_makes_the_whole_span_present(self):
-		# You have not left a company you still work at, whatever the other
-		# roles say -- a blank end dominates the group.
-		span = role_span([
-			{"duration": {"start": "2022-03-01", "end": ""}},
-			{"duration": {"start": "2021-01-01", "end": "2022-03-01"}},
-		])
-		assert span == {"start": "2021-01-01", "end": ""}
-
-	def test_a_malformed_role_date_does_not_break_the_span(self):
-		# Malformed dates already print verbatim everywhere else here (as_date
-		# hands them back, parse_duration says "Unknown duration"); a derived
-		# span is a reading convenience, not a fact worth failing a build over.
-		span = role_span([{"duration": {"start": "someday", "end": "2023-06-01"}}])
-		assert span == {"start": "someday", "end": "2023-06-01"}
-
 	def test_flatten_repeats_the_employer_and_keeps_each_role_whole(self):
 		flat = flatten_roles([{
 			"company": "acme", "location": "Bern, CH",
@@ -731,49 +718,51 @@ class TestRoleGrouping:
 		assert f"{self.COMPANY}, Bern, CH" in txt
 		assert f"{self.COMPANY}, Lausanne, CH" in txt
 
-	def test_classic_prints_the_employer_once(self, tmp_path, monkeypatch):
-		tex = run_main(tmp_path, monkeypatch, "--layout", "classic", "--company-descriptions", "max")
-		assert tex.count(f"{{\\bf {self.COMPANY}}}") == 1
-		assert tex.count(self.BLURB) == 1
-		assert tex.count("https://neuralcore.ch") == 2  # \href{ url }{ url }, one line
-		for title in self.TITLES:
-			assert f"{{\\sl {title} }}" in tex
-		# Flush left, like every other line in the block: the title was the one
-		# line in the entry with a different left edge.
-		assert "\\hspace*{\\cvroleindent}" not in tex
-
-	def test_classic_shows_the_combined_span_and_total_tenure(self, tmp_path, monkeypatch):
-		# The number the two-entry spelling never stated: the reader had to
-		# add the roles up themselves. Span and tenure share the header line --
-		# on separate lines the tenure read as a wrapped continuation of the
-		# span rather than as the employer's total, so this asserts the one
-		# line, not the two figures independently.
+	def test_classic_leads_with_the_title_then_the_employer(self, tmp_path, monkeypatch):
+		# The pattern every block in every layout now follows: title, employer
+		# and location, website. Asserted as the two consecutive lines rather
+		# than as three independent substrings, because the whole point of the
+		# change is the order they arrive in.
 		tex = run_main(tmp_path, monkeypatch, "--layout", "classic")
 		assert (
-			f"{{\\bf {self.COMPANY}}}, {{\\sl Bern, CH}} \\hfill "
-			"{\\sl Jan 2021 -- Jun 2023 (2 years, 5 months)}"
+			"{\\bf Machine Learning Engineer} \\hfill "
+			"{\\sl Mar 2022 -- Jun 2023 (1 year, 3 months)} \\\\\n"
+			f"\t{{\\sl {self.COMPANY}, Bern, CH}} \\\\\n"
 		) in tex
 
-	def test_classic_dates_each_role_but_leaves_the_duration_to_the_employer(self, tmp_path, monkeypatch):
-		# Every role keeps its own dates, but not its own parenthesised
-		# duration: the employer's span and tenure sitting a line above the
-		# first role's dates and duration read as one confused pair rather
-		# than as a total and the first part of it. Exactly one duration in
-		# the block, the employer's; each role line answers only "when".
-		tex = run_main(tmp_path, monkeypatch, "--layout", "classic")
-		assert "{\\sl Mar 2022 -- Jun 2023} \\\\[\\cvsubitemskip]" in tex
-		assert "{\\sl Jan 2021 -- Mar 2022} \\\\[\\cvsubitemskip]" in tex
-		assert "Mar 2022 -- Jun 2023 (1 year, 3 months)" not in tex
-		assert "Jan 2021 -- Mar 2022 (1 year, 2 months)" not in tex
+	def test_classic_repeats_the_employer_per_role(self, tmp_path, monkeypatch):
+		# The opposite of what classic used to do, and for a structural reason
+		# rather than a stylistic one: a company header can only precede what
+		# it heads, and the title now occupies that position.
+		tex = run_main(tmp_path, monkeypatch, "--layout", "classic", "--company-descriptions", "max")
+		assert tex.count(f"{{\\sl {self.COMPANY}, Bern, CH}}") == 2
+		assert tex.count("https://neuralcore.ch") == 4  # \href{ url }{ url }, one line per role
+		for title in self.TITLES:
+			assert f"{{\\bf {title}}}" in tex
+		# The blurb goes with the block it belongs to, so it repeats too --
+		# as it already did in ats and txt. No employer with several roles is
+		# blurbed at any level in the real data (BIS, the only one, is
+		# is_well_known), so this repeats in the fixture and nowhere else.
+		assert tex.count(self.BLURB) == 2
 
-	def test_classic_separates_roles_but_does_not_gap_the_first_one(self, tmp_path, monkeypatch):
-		# \cvroleskip sits between one role and the next and nowhere else: one
-		# skip for a two-role group, not two. With no gap and no indent the
-		# first role sits under its employer exactly as a single-role entry's
-		# title does, so both branches open identically and only a *second*
-		# role costs any extra space.
+	def test_classic_gives_each_role_its_own_dates_and_duration(self, tmp_path, monkeypatch):
+		# The combined span and total tenure went with the shared header --
+		# there is no line left that spans both roles. Each block states its
+		# own range and its own duration, which is what ats and txt have
+		# always done, and the reader adds them up.
 		tex = run_main(tmp_path, monkeypatch, "--layout", "classic")
-		assert tex.count("\\\\[\\cvroleskip]") == len(self.TITLES) - 1
+		assert "{\\sl Mar 2022 -- Jun 2023 (1 year, 3 months)}" in tex
+		assert "{\\sl Jan 2021 -- Mar 2022 (1 year, 2 months)}" in tex
+		assert "Jan 2021 -- Jun 2023 (2 years, 5 months)" not in tex
+
+	def test_classic_spaces_two_roles_like_any_other_pair_of_entries(self, tmp_path, monkeypatch):
+		# \cvroleskip existed only for the gap inside a group. Roles are
+		# ordinary entries now, separated by the blank-line \parskip every
+		# other pair gets, so the register is gone rather than merely unused --
+		# a surviving \newskip would be one nothing spaces.
+		tex = strip_latex_comments(run_main(tmp_path, monkeypatch, "--layout", "classic"))
+		assert "\\cvroleskip" not in tex
+		assert "\\hspace*{\\cvroleindent}" not in tex
 
 	@pytest.mark.parametrize("layout", ["ats", "txt"])
 	def test_ats_and_txt_repeat_the_employer_per_role(self, tmp_path, monkeypatch, layout):
@@ -786,24 +775,27 @@ class TestRoleGrouping:
 		for title in self.TITLES:
 			assert title in rendered
 
-	def test_a_grouped_employer_without_a_url_still_gets_its_tenure(self, tmp_path, monkeypatch):
-		# The tenure rides on the header line, so a URL-less employer keeps it
-		# and simply drops the line below -- no stray empty link, and no line
-		# holding nothing but a right-aligned number. No sample or real
-		# employer is URL-less, so nothing else would catch that.
+	def test_a_url_less_employer_drops_the_line_and_keeps_the_gap(self, tmp_path, monkeypatch):
+		# \cvsubitemskip tightens the *last* header line into the body, so
+		# with no website to ride on it has to fall back to the employer line.
+		# No sample or real employer is URL-less, so nothing else exercises
+		# that branch -- and a missed fallback would show only as a slightly
+		# loose entry, never as a build failure.
 		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
 		data["companies"][1]["url"] = ""
 		specials = tmp_path / "specials.json"
 		specials.write_text(json.dumps(data), encoding="utf-8")
 		tex = run_main(tmp_path, monkeypatch, "--layout", "classic", input_json=specials)
-		assert "Jan 2021 -- Jun 2023 (2 years, 5 months)" in tex
+		assert f"{{\\sl {self.COMPANY}, Bern, CH}} \\\\[\\cvsubitemskip]" in tex
+		assert "{\\sl Mar 2022 -- Jun 2023 (1 year, 3 months)}" in tex
 		assert "\\href{  }{  }" not in tex
 		assert "{\\sl — }" not in tex
 
 	def test_grouped_role_fields_are_escaped(self, tmp_path, monkeypatch):
-		# The grouped branch of classic/sections/experience.j2 is new markup,
-		# so it needs its own escaping check -- TestClassicEscaping counts
-		# injections along the flat path and would not cover it.
+		# A role reached through flatten_roles carries its own title and
+		# description rather than the entry's, so it takes a different route
+		# through the template than a flat entry does -- TestClassicEscaping
+		# counts injections along that path and would not cover this one.
 		data = json.loads((REPO_ROOT / "data" / "cv.json").read_text(encoding="utf-8"))
 		data["experience"][1]["roles"][0]["title"] = TestClassicEscaping.SENTINEL
 		data["experience"][1]["roles"][0]["description"] = TestClassicEscaping.SENTINEL
