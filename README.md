@@ -1,24 +1,24 @@
 # Bruno Saboia's CV generator
 ## What
-This is a small pet project that helps me with the building of my CV and deploy it to my website in an automated fashion.
+This is a small pet project that helps me build my CV and deploy it to my website in an automated fashion.
 
 It reads from a single source of truth (a [JSON](https://www.json.org/json-en.html) file), and through a [Jinja2](https://jinja.palletsprojects.com/en/stable/) template, it generates a `.tex` file, which is then compiled into the final PDF file.
 
 For the deployment, [another repo](https://github.com/brunosaboia/cv-data) is used. This repo is private because my personal data is there. If you have a real need for it, drop me an inbox and I can analyze your request and grant access.
 
 ## Why
-Throughout my career, I have had to write many versions of my CV. As a programmer, I do not like to repeat myself, so copy-pasting data from one CV standard to another seemed to be a little bit of a re-work. Initially, my idea was to use [LinkedIn](https://www.linkedin.com/) as a source of truth for my data, but they don't have a good API for that. Therefore, I decide to take control of my own data and make this little project.
+Throughout my career, I have had to write many versions of my CV. As a programmer, I do not like to repeat myself, so copy-pasting data from one CV standard to another seemed to be a little bit of a re-work. Initially, my idea was to use [LinkedIn](https://www.linkedin.com/) as a source of truth for my data, but they don't have a good API for that. Therefore, I decided to take control of my own data and make this little project.
 
-Another big reason for doing this project is my believe that you should own your on data, so here we are :)
+Another big reason for doing this project is my belief that you should own your own data, so here we are :)
 
 ## Where
-A sample PDF compiled used this project can be found [here](https://saboia.it/assets/pdf/cv/cv-sample.pdf).
+A sample PDF compiled using this project can be found [here](https://saboia.it/assets/pdf/cv/cv-sample.pdf).
 
 ## Who
 [Bruno Saboia de Albuquerque](https://linkedin.com/in/brunosaboia).
 
 ## How
-If for some odd reason you want to run this own your own, it should be straight-forward. You need [uv](https://docs.astral.sh/uv/) and a LaTeX distribution providing `pdflatex`; a `Makefile` does most of the heavy-lifting (`make setup-dev` once, then `make build`). Python dependencies are declared in `pyproject.toml` and locked in `uv.lock`.
+If for some odd reason you want to run this on your own, it should be straightforward. You need [uv](https://docs.astral.sh/uv/) and a LaTeX distribution providing `pdflatex`; a `Makefile` does most of the heavy-lifting (`make setup-dev` once, then `make build`). Python dependencies are declared in `pyproject.toml` and locked in `uv.lock`.
 
 Everything a pipeline needs is parametrized (via `make` variables or environment):
 
@@ -156,7 +156,7 @@ Even the `ats` layout only wins the *text layer a scanner extracts from the PDF*
 Adding a layout means adding a directory: `src/template/<name>/cv.j2` plus `sections/*.j2`, and it shows up in `make build LAYOUT=<name>` with no code change. Presentation rules a layout cannot express are declared in `LAYOUT_RULE_OVERRIDES` in `src/generate_cv.py`, and win over the market.
 
 ## Future
-Adjusting a CV for a specific role — for example, by changing some wording or emphasizing some skill set — is something that I want to look further. Also, exploring LLMs to rephrase some wording for some specific context might sound like a good idea.
+Adjusting a CV for a specific role — for example, by changing some wording or emphasizing some skill set — is something that I want to look into further. Also, exploring LLMs to rephrase some wording for some specific context might sound like a good idea.
 
 ## Contributing
 Commits to this repo and to `cv-data` always follow conventional commits: a lowercase `type:` prefix (`feat:`, `fix:`, `chore:`, `style:`, `ci:`, `doc:` — `doc:`, not `docs:`), no trailing period, and one logical change per commit.
