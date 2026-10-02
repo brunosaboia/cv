@@ -40,10 +40,10 @@ Nationality: {{ personal.nationality }}
 Date of birth: {{ personal.dob | as_date(fmt_full_date) }}
 {% endif %}
 {% if personal.linkedin %}
-LinkedIn: {{ personal.linkedin }}
+LinkedIn: https://www.linkedin.com/in/{{ personal.linkedin }}
 {% endif %}
 {% if personal.github %}
-GitHub: {{ personal.github }}
+GitHub: https://github.com/{{ personal.github }}
 {% endif %}
 {% for section in headers %}
 {% if section %}

@@ -153,10 +153,10 @@ Nationality: {{ personal.nationality | latex_escape }}
 Date of birth: {{ personal.dob | as_date(fmt_full_date) }}
 {%- endif %}
 {%- if personal.linkedin %}\\
-LinkedIn: \weburl{ {{- personal.linkedin -}} }
+LinkedIn: \weburl{https://www.linkedin.com/in/{{ personal.linkedin }}}
 {%- endif %}
 {%- if personal.github %}\\
-GitHub: \weburl{ {{- personal.github -}} }
+GitHub: \weburl{https://github.com/{{ personal.github }}}
 {%- endif %}
 
 {% for section in headers %}

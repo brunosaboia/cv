@@ -206,7 +206,7 @@ class TestAtsLayoutIsParseable:
 	def test_contact_urls_are_their_own_link_text(self, tex):
 		# A link labelled "LinkedIn" keeps its address in the annotation layer,
 		# which text extraction never sees.
-		assert "LinkedIn: \\weburl{https://linkedin.com/in/johndoe}" in tex
+		assert "LinkedIn: \\weburl{https://www.linkedin.com/in/johndoe}" in tex
 		assert "GitHub: \\weburl{https://github.com/johndoe}" in tex
 
 	def test_dates_stay_next_to_their_employer(self, tex):
@@ -273,7 +273,7 @@ class TestTxtLayout:
 		assert "Phone: " in txt
 
 	def test_urls_are_plain_text(self, txt):
-		assert "LinkedIn: https://linkedin.com/in/johndoe" in txt
+		assert "LinkedIn: https://www.linkedin.com/in/johndoe" in txt
 		assert "GitHub: https://github.com/johndoe" in txt
 
 	def test_no_photo_even_for_a_photo_market(self, tmp_path, monkeypatch):
@@ -413,7 +413,7 @@ class TestLinks:
 	def test_no_links_keeps_the_address_as_text(self, tmp_path, monkeypatch):
 		# The point of the option: drop the annotation, never the URL.
 		tex = run_main(tmp_path, monkeypatch, "--layout", "ats", "--no-links")
-		assert "LinkedIn: \\weburl{https://linkedin.com/in/johndoe}" in tex
+		assert "LinkedIn: \\weburl{https://www.linkedin.com/in/johndoe}" in tex
 		assert "GitHub: \\weburl{https://github.com/johndoe}" in tex
 		assert "Email: john.doe@example.com" in tex
 
@@ -431,7 +431,7 @@ class TestLinks:
 		tex = run_main(tmp_path, monkeypatch, "--layout", "classic", "--no-links")
 		for url in (
 			"https://github.com/johndoe",
-			"https://linkedin.com/in/johndoe",
+			"https://www.linkedin.com/in/johndoe",
 			"https://example.com/assets/pdf/transcripts/ethz-ms.pdf",
 			"https://example.com/ai-prize-2022",
 		):

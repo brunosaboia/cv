@@ -147,7 +147,7 @@
 	\moveleft.5\hoffset\centerline{ Nationality: {{ personal.nationality | latex_escape }}}
 	{% endif %}
 	\moveleft.5\hoffset\centerline{e-mail: {% if links %}\href{mailto:{{ personal.email }}}{ {{ personal.email | latex_escape }}}{% else %}{{ personal.email | latex_escape }}{% endif %} -- Tel: {{ personal.phone | latex_escape }}}
-	\moveleft.5\hoffset\centerline{\sl{ {%- if links %}\href{ {{ personal.github }} }{GitHub} -- \href{ {{ personal.linkedin }} }{LinkedIn}{% else %}\weburl{ {{- personal.github -}} } -- \weburl{ {{- personal.linkedin -}} }{% endif -%} }}
+	\moveleft.5\hoffset\centerline{\sl{ {%- if links %}\href{https://github.com/{{ personal.github }}}{GitHub} -- \href{https://www.linkedin.com/in/{{ personal.linkedin }}}{LinkedIn}{% else %}\weburl{https://github.com/{{ personal.github }}} -- \weburl{https://www.linkedin.com/in/{{ personal.linkedin }}}{% endif -%} }}
 	{% if personal.photo and market.get("show_photo", true) %}
 	% Zero-height, bottom-anchored box: the photo floats over the empty right
 	% flank of the centered header (right edge aligned with the rule) without
